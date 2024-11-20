@@ -1,0 +1,938 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+      "title": "Integration API",
+      "version": "1.0"
+    },
+    "servers": [
+      {
+        "url": "https://api.us-east-1.langdb.ai"
+      }
+    ],
+    "paths": {
+      "/integrations/{integration_name}": {
+        "delete": {
+          "summary": "Delete an integration",
+          "operationId": "deleteIntegration",
+          "parameters": [
+            {
+              "name": "integration_name",
+              "in": "path",
+              "required": true,
+              "description": "Name of the integration to delete",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Integration deleted successfully"
+            },
+            "404": {
+              "description": "Integration not found"
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ]
+        }
+      },
+      "/integrations/{integration_name}/auth/start": {
+        "get": {
+          "summary": "Start authentication for an integration",
+          "operationId": "startIntegrationAuth",
+          "parameters": [
+            {
+              "name": "integration_name",
+              "in": "path",
+              "required": true,
+              "description": "Name of the integration to authenticate",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "redirect_uri",
+              "in": "query",
+              "required": false,
+              "description": "URL to redirect after authentication",
+              "schema": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            {
+              "name": "state",
+              "in": "query",
+              "required": false,
+              "description": "State parameter to prevent CSRF",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Authentication started successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/AuthStartResult_Saved"
+                      },
+                      {
+                        "$ref": "#/components/schemas/AuthStartResult_ExternalLoginLink"
+                      },
+                      {
+                        "$ref": "#/components/schemas/AuthStartResult_OtpSent"
+                      },
+                      {
+                        "$ref": "#/components/schemas/AuthStartResult_RequireEmailAndPassword"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad request. Invalid query parameters or inputs.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Integration not found.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ]
+        }
+      },
+      "/integrations/{integration_name}/auth/verify_callback": {
+        "post": {
+          "summary": "Verify authentication callback",
+          "operationId": "verifyIntegrationAuthCallback",
+          "parameters": [
+            {
+              "name": "integration_name",
+              "in": "path",
+              "required": true,
+              "description": "Name of the integration",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "description": "Authentication callback data",
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallbackRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Authentication verified successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/AuthResult_TokenInfo"
+                      },
+                      {
+                        "$ref": "#/components/schemas/AuthResult_CookieWithToken"
+                      },
+                      {
+                        "$ref": "#/components/schemas/AuthResult_Cookies"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid callback data",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Integration not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ]
+        }
+      },
+      "/integrations/{integration_name}/definitions": {
+        "get": {
+          "summary": "Get integration definitions",
+          "operationId": "getIntegrationDefinitions",
+          "parameters": [
+            {
+              "name": "integration_name",
+              "in": "path",
+              "required": true,
+              "description": "Name of the integration",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "type",
+              "in": "query",
+              "required": false,
+              "description": "Filter definitions by route type ('table' or 'action')",
+              "schema": {
+                "type": "string",
+                "enum": [
+                  "table",
+                  "action"
+                ]
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Definitions retrieved successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/components/schemas/Route"
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid request parameters",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Integration not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ]
+        }
+      },
+      "/integrations/{integration_name}/virtual_table_definitions": {
+        "get": {
+          "summary": "Get virtual table definitions",
+          "operationId": "getVirtualTableDefinitions",
+          "parameters": [
+            {
+              "name": "integration_name",
+              "in": "path",
+              "required": true,
+              "description": "Name of the integration",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Virtual table definitions retrieved successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/VirtualTableResponse"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid request parameters",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Integration or virtual table not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ]
+        }
+      },
+      "/{integration_name}/execute": {
+        "post": {
+          "summary": "Execute an integration action",
+          "operationId": "executeIntegrationAction",
+          "parameters": [
+            {
+              "name": "integration_name",
+              "in": "path",
+              "required": true,
+              "description": "Name of the integration",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "description": "Execution parameters for the action",
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecuteRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Action executed successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ExecuteResponse"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad request. Invalid parameters or missing integration configuration.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Integration or action not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ]
+        }
+      },
+      "/{integration_name}/fetch_mapped_data": {
+        "post": {
+          "summary": "Fetch mapped data from integration",
+          "operationId": "fetchMappedData",
+          "parameters": [
+            {
+              "name": "integration_name",
+              "in": "path",
+              "required": true,
+              "description": "Name of the integration",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "description": "Data mapping parameters for fetching mapped data",
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FetchMappedDataRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Mapped data retrieved successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/FetchMappedDataResponse"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid request parameters or integration configuration not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Integration or virtual table not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ]
+        }
+      }
+    },
+    "components": {
+      "securitySchemes": {
+        "ApiKeyAuth": {
+          "type": "apiKey",
+          "in": "header",
+          "name": "Authorization"
+        }
+      },
+      "schemas": {
+        "AuthStartResult_Saved": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "Saved"
+              ],
+              "description": "Indicates that saved credentials are being used."
+            }
+          }
+        },
+        "AuthStartResult_ExternalLoginLink": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "ExternalLoginLink"
+              ],
+              "description": "Indicates that an external OAuth login link is provided."
+            },
+            "url": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL to redirect the user for OAuth authentication."
+            }
+          },
+          "required": [
+            "status",
+            "url"
+          ]
+        },
+        "AuthStartResult_OtpSent": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "OtpSent"
+              ],
+              "description": "Indicates that an OTP has been sent for authentication."
+            }
+          }
+        },
+        "AuthStartResult_RequireEmailAndPassword": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "RequireEmailAndPassword"
+              ],
+              "description": "Indicates that email and password are required for authentication."
+            }
+          }
+        },
+        "CallbackRequest": {
+          "type": "object",
+          "properties": {
+            "params": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Callback parameters received from the integration"
+            }
+          },
+          "required": [
+            "params"
+          ]
+        },
+        "AuthResult_TokenInfo": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "TokenInfo"
+              ]
+            },
+            "access_token": {
+              "type": "string"
+            },
+            "refresh_token": {
+              "type": "string",
+              "nullable": true
+            },
+            "expires_in": {
+              "type": "integer",
+              "nullable": true
+            },
+            "token_type": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          "required": [
+            "type",
+            "access_token"
+          ]
+        },
+        "AuthResult_CookieWithToken": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "CookieWithToken"
+              ]
+            },
+            "cookies": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "token_info": {
+              "$ref": "#/components/schemas/TokenInfo"
+            }
+          },
+          "required": [
+            "type",
+            "cookies",
+            "token_info"
+          ]
+        },
+        "AuthResult_Cookies": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "Cookies"
+              ]
+            },
+            "cookies": {
+              "type": "string",
+              "description": "Serialized cookies string"
+            }
+          },
+          "required": [
+            "type",
+            "cookies"
+          ]
+        },
+        "TokenInfo": {
+          "type": "object",
+          "properties": {
+            "access_token": {
+              "type": "string"
+            },
+            "refresh_token": {
+              "type": "string",
+              "nullable": true
+            },
+            "expires_in": {
+              "type": "integer",
+              "nullable": true
+            },
+            "token_type": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          "required": [
+            "access_token"
+          ]
+        },
+        "Route": {
+          "type": "object",
+          "properties": {
+            "route_type": {
+              "type": "string",
+              "description": "Type of the route ('table' or 'action')",
+              "enum": [
+                "table",
+                "action"
+              ]
+            },
+            "name": {
+              "type": "string",
+              "description": "Name of the route"
+            },
+            "description": {
+              "type": "string",
+              "description": "Description of the route"
+            },
+            "parameters": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Parameter"
+              }
+            }
+          },
+          "required": [
+            "route_type",
+            "name"
+          ]
+        },
+        "Parameter": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Parameter name"
+            },
+            "type": {
+              "type": "string",
+              "description": "Data type of the parameter"
+            },
+            "required": {
+              "type": "boolean",
+              "description": "Whether the parameter is required"
+            },
+            "description": {
+              "type": "string",
+              "description": "Description of the parameter"
+            }
+          },
+          "required": [
+            "name",
+            "type",
+            "required"
+          ]
+        },
+        "VirtualTableResponse": {
+          "type": "object",
+          "properties": {
+            "tables": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/components/schemas/VirtualTable"
+              },
+              "description": "Mapping of virtual table names to their definitions"
+            },
+            "schemas": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/components/schemas/Route"
+              },
+              "description": "Mapping of virtual table names to their route schemas"
+            },
+            "columns": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TableField"
+                }
+              },
+              "description": "Mapping of virtual table names to their column definitions"
+            }
+          },
+          "required": [
+            "tables",
+            "schemas",
+            "columns"
+          ]
+        },
+        "VirtualTable": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the virtual table"
+            },
+            "api_name": {
+              "type": "string",
+              "description": "Associated API name for the virtual table"
+            },
+            "description": {
+              "type": "string",
+              "description": "Description of the virtual table"
+            },
+            "other_properties": {
+              "type": "object",
+              "description": "Additional properties specific to the virtual table"
+            }
+          },
+          "required": [
+            "name",
+            "api_name"
+          ]
+        },
+        "TableField": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the field/column"
+            },
+            "type": {
+              "type": "string",
+              "description": "Data type of the field"
+            },
+            "description": {
+              "type": "string",
+              "description": "Description of the field"
+            },
+            "nullable": {
+              "type": "boolean",
+              "description": "Indicates if the field can be null"
+            }
+          },
+          "required": [
+            "name",
+            "type"
+          ]
+        },
+        "ExecuteRequest": {
+          "type": "object",
+          "properties": {
+            "api_name": {
+              "type": "string",
+              "description": "Name of the API action to execute"
+            },
+            "params": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Parameters required for the action"
+            },
+            "columns": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Optional list of columns to retrieve"
+            }
+          },
+          "required": [
+            "api_name",
+            "params"
+          ]
+        },
+        "ExecuteResponse": {
+          "type": "object",
+          "description": "Result of the executed action",
+          "properties": {
+            "data": {
+              "type": "object",
+              "description": "The result data returned by the action"
+            },
+            "message": {
+              "type": "string",
+              "description": "Optional message or status information"
+            }
+          },
+          "additionalProperties": true
+        },
+        "ErrorResponse": {
+          "type": "object",
+          "properties": {
+            "error": {
+              "type": "string",
+              "description": "Error message describing what went wrong."
+            },
+            "code": {
+              "type": "string",
+              "description": "Error code representing the type of error."
+            }
+          },
+          "required": [
+            "error",
+            "code"
+          ]
+        },
+        "FetchMappedDataRequest": {
+          "type": "object",
+          "properties": {
+            "virtual_table_name": {
+              "type": "string",
+              "description": "Name of the virtual table to fetch data from"
+            },
+            "params": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Parameters required to fetch the mapped data"
+            }
+          },
+          "required": [
+            "virtual_table_name",
+            "params"
+          ]
+        },
+        "FetchMappedDataResponse": {
+          "type": "object",
+          "description": "Data retrieved from the virtual table",
+          "properties": {
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "description": "Array of data records"
+            },
+            "message": {
+              "type": "string",
+              "description": "Optional message or status information"
+            }
+          },
+          "additionalProperties": true
+        }
+      }
+    }
+  }
