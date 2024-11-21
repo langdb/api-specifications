@@ -14,6 +14,26 @@
       "post": {
         "summary": "Get OAuth2 Access Token",
         "operationId": "getOAuth2AccessToken",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The client identifier issued during the registration process."
+          },
+          {
+            "name": "client_secret",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The client secret issued during the registration process."
+          }
+        ],
         "requestBody": {
           "description": "Credentials for obtaining an access token",
           "required": true,
