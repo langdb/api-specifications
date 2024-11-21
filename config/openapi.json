@@ -10,6 +10,169 @@
     }
   ],
   "paths": {
+    "/oauth2/token": {
+      "post": {
+        "summary": "Get OAuth2 Access Token",
+        "operationId": "getOAuth2AccessToken",
+        "requestBody": {
+          "description": "Credentials for obtaining an access token",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetAccessTokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Access token retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessTokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations": {
+      "get": {
+        "summary": "List all enabled integrations",
+        "operationId": "listEnabledIntegrations",
+        "responses": {
+          "200": {
+            "description": "A list of enabled integrations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DataIntegration"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. Invalid query parameters or inputs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No integrations found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": [],
+            "ProjectIdAuth": []
+          }
+        ]
+      }
+    },
+    "/integrations/available": {
+      "get": {
+        "summary": "List all available integrations",
+        "operationId": "listAvailableIntegrations",
+        "responses": {
+          "200": {
+            "description": "A list of available integrations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Integration"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. Invalid query parameters or inputs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": [],
+            "ProjectIdAuth": []
+          }
+        ]
+      }
+    },
     "/integrations/{integration_name}": {
       "delete": {
         "summary": "Delete an integration",
@@ -224,10 +387,10 @@
         ]
       }
     },
-    "/integrations/{integration_name}/definitions": {
+    "/integrations/{integration_name}/actions": {
       "get": {
-        "summary": "Get integration definitions",
-        "operationId": "getIntegrationDefinitions",
+        "summary": "List all actions for a specific integration",
+        "operationId": "getActions",
         "parameters": [
           {
             "name": "integration_name",
@@ -237,37 +400,24 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "type",
-            "in": "query",
-            "required": false,
-            "description": "Filter definitions by route type ('table' or 'action')",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "table",
-                "action"
-              ]
-            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Definitions retrieved successfully",
+            "description": "A list of actions for the specified integration",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/components/schemas/Route"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IntegrationAction"
                   }
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid request parameters",
+            "description": "Bad request. Invalid integration name or parameters.",
             "content": {
               "application/json": {
                 "schema": {
@@ -277,7 +427,7 @@
             }
           },
           "404": {
-            "description": "Integration not found",
+            "description": "Integration not found.",
             "content": {
               "application/json": {
                 "schema": {
@@ -287,7 +437,7 @@
             }
           },
           "500": {
-            "description": "Internal server error",
+            "description": "Internal server error.",
             "content": {
               "application/json": {
                 "schema": {
@@ -305,10 +455,10 @@
         ]
       }
     },
-    "/integrations/{integration_name}/virtual_table_definitions": {
+    "/integrations/{integration_name}/resources": {
       "get": {
-        "summary": "Get virtual table definitions",
-        "operationId": "getVirtualTableDefinitions",
+        "summary": "List all resources for a specific integration",
+        "operationId": "getIntegrationResources",
         "parameters": [
           {
             "name": "integration_name",
@@ -322,7 +472,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Virtual table definitions retrieved successfully",
+            "description": "A list of resources for the specified integration",
             "content": {
               "application/json": {
                 "schema": {
@@ -332,7 +482,7 @@
             }
           },
           "400": {
-            "description": "Invalid request parameters",
+            "description": "Bad request. Invalid integration name or parameters.",
             "content": {
               "application/json": {
                 "schema": {
@@ -342,7 +492,7 @@
             }
           },
           "404": {
-            "description": "Integration or virtual table not found",
+            "description": "Integration not found.",
             "content": {
               "application/json": {
                 "schema": {
@@ -352,7 +502,7 @@
             }
           },
           "500": {
-            "description": "Internal server error",
+            "description": "Internal server error.",
             "content": {
               "application/json": {
                 "schema": {
@@ -429,6 +579,91 @@
           },
           "500": {
             "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": [],
+            "ProjectIdAuth": []
+          }
+        ]
+      }
+    },
+    "/integrations/{integration_name}/{resource_name}/fetch": {
+      "post": {
+        "summary": "Fetch data for a specific resource within an integration",
+        "operationId": "fetchResource",
+        "parameters": [
+          {
+            "name": "integration_name",
+            "in": "path",
+            "required": true,
+            "description": "Name of the integration",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "resource_name",
+            "in": "path",
+            "required": true,
+            "description": "Name of the resource within the integration",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Parameters required to fetch the resource",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FetchResourceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Data fetched successfully for the specified resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FetchResourceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. Invalid parameters or request body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Integration or resource not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
             "content": {
               "application/json": {
                 "schema": {
@@ -705,37 +940,6 @@
           "access_token"
         ]
       },
-      "Route": {
-        "type": "object",
-        "properties": {
-          "route_type": {
-            "type": "string",
-            "description": "Type of the route ('table' or 'action')",
-            "enum": [
-              "table",
-              "action"
-            ]
-          },
-          "name": {
-            "type": "string",
-            "description": "Name of the route"
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the route"
-          },
-          "parameters": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Parameter"
-            }
-          }
-        },
-        "required": [
-          "route_type",
-          "name"
-        ]
-      },
       "Parameter": {
         "type": "object",
         "properties": {
@@ -765,60 +969,66 @@
       "VirtualTableResponse": {
         "type": "object",
         "properties": {
-          "tables": {
+          "resources": {
             "type": "object",
             "additionalProperties": {
-              "$ref": "#/components/schemas/VirtualTable"
+              "$ref": "#/components/schemas/Resource"
             },
-            "description": "Mapping of virtual table names to their definitions"
-          },
-          "schemas": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/Route"
-            },
-            "description": "Mapping of virtual table names to their route schemas"
+            "description": "Mapping of resource names to their definitions."
           },
           "columns": {
             "type": "object",
             "additionalProperties": {
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/TableField"
-              }
+              "$ref": "#/components/schemas/TableField"
             },
-            "description": "Mapping of virtual table names to their column definitions"
+            "description": "Mapping of resource names to their column schemas."
+          },
+          "configs": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ConfigSchema"
+            },
+            "description": "Mapping of resource names to their configuration schemas."
           }
         },
         "required": [
-          "tables",
-          "schemas",
-          "columns"
+          "resources",
+          "columns",
+          "configs"
         ]
       },
-      "VirtualTable": {
+      "Resource": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
-            "description": "Name of the virtual table"
+            "description": "Unique identifier for the resource."
           },
-          "api_name": {
+          "type": {
             "type": "string",
-            "description": "Associated API name for the virtual table"
+            "description": "Type of the resource (e.g., table, view)."
           },
           "description": {
             "type": "string",
-            "description": "Description of the virtual table"
+            "description": "Human-readable description of the resource."
           },
-          "other_properties": {
-            "type": "object",
-            "description": "Additional properties specific to the virtual table"
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the resource was created."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the resource was last updated."
           }
         },
         "required": [
           "name",
-          "api_name"
+          "type",
+          "description",
+          "created_at",
+          "updated_at"
         ]
       },
       "TableField": {
@@ -845,6 +1055,11 @@
           "name",
           "type"
         ]
+      },
+      "ConfigSchema": {
+        "type": "object",
+        "description": "Configuration details for the resource.",
+        "additionalProperties": true
       },
       "ExecuteRequest": {
         "type": "object",
@@ -888,6 +1103,75 @@
         },
         "additionalProperties": true
       },
+      "GetAccessTokenRequest": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "description": "Client ID provided during app registration"
+          },
+          "client_secret": {
+            "type": "string",
+            "description": "Client secret provided during app registration"
+          },
+          "grant_type": {
+            "type": "string",
+            "description": "The grant type requesting the token. Only 'client_credentials' is supported.",
+            "enum": [
+              "client_credentials"
+            ],
+            "default": "client_credentials"
+          }
+        },
+        "required": [
+          "client_id",
+          "client_secret",
+          "grant_type"
+        ]
+      },
+      "AccessTokenResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "description": "Access token issued by the authorization server"
+          },
+          "expires_in": {
+            "type": "integer",
+            "description": "Lifetime in seconds of the access token"
+          },
+          "token_type": {
+            "type": "string",
+            "description": "Type of the token issued",
+            "example": "Bearer"
+          },
+          "refresh_token": {
+            "type": "string",
+            "description": "Refresh token which can be used to obtain new access tokens using the same authorization grant"
+          },
+          "id_token": {
+            "type": "string",
+            "description": "ID Token containing user identity claims"
+          }
+        },
+        "required": [
+          "access_token",
+          "expires_in",
+          "token_type"
+        ]
+      },
+      "FetchResourceRequest": {
+        "type": "object",
+        "description": "Parameters required to fetch the resource",
+        "additionalProperties": {
+          "type": "string"
+        }
+      },
+      "FetchResourceResponse": {
+        "type": "object",
+        "description": "Result of the resource execution",
+        "additionalProperties": true
+      },
       "ErrorResponse": {
         "type": "object",
         "properties": {
@@ -923,6 +1207,100 @@
         "required": [
           "virtual_table_name",
           "params"
+        ]
+      },
+      "DataIntegration": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the integration."
+          },
+          "integration_name": {
+            "type": "string",
+            "description": "Name of the integration."
+          },
+          "state": {
+            "type": "string",
+            "description": "Current state of the integration (e.g., enabled, disabled).",
+            "enum": [
+              "enabled",
+              "disabled"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the integration was created."
+          },
+          "config": {
+            "type": "object",
+            "description": "Configuration details for the integration.",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "id",
+          "integration_name",
+          "config",
+          "state",
+          "created_at"
+        ]
+      },
+      "Integration": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the integration."
+          },
+          "auth_type": {
+            "type": "string",
+            "description": "Type of authentication required by the integration.",
+            "enum": [
+              "oauth",
+              "native"
+            ]
+          },
+          "required_inputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of required input fields for the integration."
+          }
+        },
+        "required": [
+          "name",
+          "auth_type",
+          "required_inputs"
+        ]
+      },
+      "IntegrationAction": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier for the action."
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description of the action."
+          },
+          "input_schema": {
+            "type": "string",
+            "description": "JSON Schema for validating inputs.",
+            "nullable": true
+          },
+          "output_schema": {
+            "type": "string",
+            "description": "JSON Schema for validating outputs.",
+            "nullable": true
+          }
+        },
+        "required": [
+          "name",
+          "description"
         ]
       },
       "FetchMappedDataResponse": {
