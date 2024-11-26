@@ -90,6 +90,23 @@
             }
           }
         },
+        "x-oaiMeta": {
+          "name": "Create chat completion",
+          "group": "chat",
+          "returns": "Returns a [chat completion](/docs/api-reference/chat/object) object, or a streamed sequence of [chat completion chunk](/docs/api-reference/chat/streaming) objects if the request is streamed.\n",
+          "path": "create",
+          "examples": [
+            {
+              "title": "Default",
+              "request": {
+                "curl": "curl https://api.openai.com/v1/chat/completions \\\n  -H \"Content-Type: application/json\" \\\n  -H \"Authorization: Bearer $OPENAI_API_KEY\" \\\n  -d '{\n    \"model\": \"VAR_model_id\",\n    \"messages\": [\n      {\n        \"role\": \"system\",\n        \"content\": \"You are a helpful assistant.\"\n      },\n      {\n        \"role\": \"user\",\n        \"content\": \"Hello!\"\n      }\n    ]\n  }'\n",
+                "python": "from openai import OpenAI\nclient = OpenAI()\n\ncompletion = client.chat.completions.create(\n  model=\"VAR_model_id\",\n  messages=[\n    {\"role\": \"system\", \"content\": \"You are a helpful assistant.\"},\n    {\"role\": \"user\", \"content\": \"Hello!\"}\n  ]\n)\n\nprint(completion.choices[0].message)\n",
+                "node.js": "import OpenAI from \"openai\";\n\nconst openai = new OpenAI();\n\nasync function main() {\n  const completion = await openai.chat.completions.create({\n    messages: [{ role: \"system\", content: \"You are a helpful assistant.\" }],\n    model: \"VAR_model_id\",\n  });\n\n  console.log(completion.choices[0]);\n}\n\nmain();"
+              },
+              "response": "{\n  \"id\": \"chatcmpl-123\",\n  \"object\": \"chat.completion\",\n  \"created\": 1677652288,\n  \"model\": \"gpt-4o-mini\",\n  \"system_fingerprint\": \"fp_44709d6fcb\",\n  \"choices\": [{\n    \"index\": 0,\n    \"message\": {\n      \"role\": \"assistant\",\n      \"content\": \"\\n\\nHello there, how may I assist you today?\",\n    },\n    \"logprobs\": null,\n    \"finish_reason\": \"stop\"\n  }],\n  \"usage\": {\n    \"prompt_tokens\": 9,\n    \"completion_tokens\": 12,\n    \"total_tokens\": 21,\n    \"completion_tokens_details\": {\n      \"reasoning_tokens\": 0,\n      \"accepted_prediction_tokens\": 0,\n      \"rejected_prediction_tokens\": 0\n    }\n  }\n}\n"
+            }
+          ]
+        },
         "security": [
           {
             "BearerAuth": [],
@@ -466,7 +483,7 @@
           },
           "model": {
             "description": "ID of the model to use.",
-            "example": "finance_assistant_v1"
+            "example": "gpt-4o"
           },
           "store": {
             "type": "boolean",
