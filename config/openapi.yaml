@@ -405,7 +405,7 @@ components:
           minItems: 1
           items:
             $ref: '#/components/schemas/ChatCompletionRequestMessage'
-          example: 
+
         model:
           description: ID of the model to use. 
           example: gpt-4o
@@ -1264,8 +1264,6 @@ components:
           $ref: '#/components/schemas/ChatCompletionMessageToolCalls'
         name:
           type: string
-          maxLength: 64
-          pattern: ^[a-zA-Z0-9_-]+$
           description: An optional name for the participant. Provides the model information about who is speaking.
       required:
         - role
@@ -1351,13 +1349,17 @@ components:
     ChatCompletionRequestMessageContentPartText:
       type: object
       title: Text content part
+      description: |
+        Learn about [text inputs](/docs/guides/text-generation).
       properties:
         type:
           type: string
           enum:
             - text
+          description: The type of the content part.
         text:
           type: string
+          description: The text content.
       required:
         - type
         - text
@@ -1393,37 +1395,60 @@ components:
       title: System message
       properties:
         content:
-          type: string
           description: The contents of the system message.
+          oneOf:
+            - type: string
+              description: The contents of the system message.
+              title: Text content
+            - type: array
+              description: An array of content parts with a defined type. For system messages,
+                only type `text` is supported.
+              title: Array of content parts
+              items:
+                $ref: "#/components/schemas/ChatCompletionRequestSystemMessageContentPart"
+              minItems: 1
         role:
           type: string
           enum:
             - system
+          description: The role of the messages author, in this case `system`.
         name:
           type: string
-          maxLength: 64
-          pattern: ^[a-zA-Z0-9_-]+$
-          description: An optional name for the participant. Provides the model information about who is speaking.
+          description: An optional name for the participant. Provides the model
+            information to differentiate between participants of the same role.
       required:
         - content
         - role
+
+
     ChatCompletionRequestToolMessage:
       type: object
       title: Tool message
       properties:
-        content:
-          type: string
-          description: The contents of the tool message.
         role:
           type: string
           enum:
             - tool
+          description: The role of the messages author, in this case `tool`.
+        content:
+          oneOf:
+            - type: string
+              description: The contents of the tool message.
+              title: Text content
+            - type: array
+              description: An array of content parts with a defined type. For tool messages,
+                only type `text` is supported.
+              title: Array of content parts
+              items:
+                $ref: "#/components/schemas/ChatCompletionRequestToolMessageContentPart"
+              minItems: 1
+          description: The contents of the tool message.
         tool_call_id:
           type: string
           description: Tool call that this message is responding to.
       required:
-        - content
         - role
+        - content
         - tool_call_id
     ChatCompletionRequestUserMessage:
       type: object
@@ -1438,14 +1463,13 @@ components:
                   - $ref: '#/components/schemas/ChatCompletionRequestMessageContentPartText'
                   - $ref: '#/components/schemas/ChatCompletionRequestMessageContentPartImage'
                   - $ref: '#/components/schemas/ChatCompletionRequestMessageContentPartAudio'
+                x-oaiExpandable: true
         role:
           type: string
           enum:
             - user
         name:
           type: string
-          maxLength: 64
-          pattern: ^[a-zA-Z0-9_-]+$
           description: An optional name for the participant. Provides the model information about who is speaking.
       required:
         - content
@@ -1514,6 +1538,15 @@ components:
             - auto
             - required
         - $ref: '#/components/schemas/ChatCompletionNamedToolChoice'
+      x-oaiExpandable: true
+    ChatCompletionRequestSystemMessageContentPart:
+      oneOf:
+        - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+      x-oaiExpandable: true
+
+    ChatCompletionRequestToolMessageContentPart:
+      oneOf:
+        - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
       x-oaiExpandable: true
     ParallelToolCalls:
       type: integer
