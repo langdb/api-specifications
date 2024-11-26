@@ -14,6 +14,11 @@
       "post": {
         "summary": "Get OAuth2 Access Token",
         "operationId": "getOAuth2AccessToken",
+        "servers": [
+          {
+            "url": "https://api.us-east-1.langdb.ai"
+          }
+        ],
         "parameters": [
           {
             "name": "client_id",
@@ -54,6 +59,11 @@
     "/chat/completions": {
       "post": {
         "operationId": "createChatCompletion",
+        "servers": [
+          {
+            "url": "https://api.us-east-1.langdb.ai"
+          }
+        ],
         "tags": [
           "Chat"
         ],
@@ -92,6 +102,11 @@
       "post": {
         "summary": "Execute a query",
         "operationId": "executeQuery",
+        "servers": [
+          {
+            "url": "https://api.us-east-1.langdb.ai"
+          }
+        ],
         "tags": [
           "Query"
         ],
@@ -446,17 +461,18 @@
             "minItems": 1,
             "items": {
               "$ref": "#/components/schemas/ChatCompletionRequestMessage"
-            }
+            },
+            "example": null
           },
           "model": {
-            "description": "ID of the model to use. See the [model endpoint compatibility](/docs/models#model-endpoint-compatibility) table for details on which models work with the Chat API.",
-            "example": "gpt-4o"
+            "description": "ID of the model to use.",
+            "example": "finance_assistant_v1"
           },
           "store": {
             "type": "boolean",
             "default": false,
             "nullable": true,
-            "description": "Whether or not to store the output of this chat completion request\nfor use in our [model distillation](/docs/guides/distillation) or [evals](/docs/guides/evals) products.\n"
+            "description": "Whether or not to store the output of this chat completion request.\n"
           },
           "metadata": {
             "type": "object",
@@ -814,7 +830,8 @@
         "properties": {
           "query": {
             "type": "string",
-            "description": "The query to be executed."
+            "description": "The query to be executed.",
+            "example": "SELECT * FROM langdb.models;"
           },
           "params": {
             "description": "Parameters required for the action",

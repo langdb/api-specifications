@@ -9,6 +9,8 @@ paths:
     post:
       summary: Get OAuth2 Access Token
       operationId: getOAuth2AccessToken
+      servers:
+        - url: https://api.us-east-1.langdb.ai
       parameters:
         - name: client_id
           in: header
@@ -22,7 +24,6 @@ paths:
           schema:
             type: string
           description: The client secret issued during the registration process.
-
       responses:
         '200':
           description: Access token retrieved successfully
@@ -30,52 +31,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AccessTokenResponse'
-        # '400':
-        #   description: Invalid request parameters
-        #   content:
-        #     application/json:
-        #       schema:
-        #         $ref: '#/components/schemas/ErrorResponse'
-        # '401':
-        #   description: Unauthorized
-        #   content:
-        #     application/json:
-        #       schema:
-        #         $ref: '#/components/schemas/ErrorResponse'
-        # '500':
-        #   description: Internal server error
-        #   content:
-        #     application/json:
-        #       schema:
-        #         $ref: '#/components/schemas/ErrorResponse'
       tags:
         - Auth
   /chat/completions:
     post:
       operationId: createChatCompletion
+      servers:
+      - url: https://api.us-east-1.langdb.ai
       tags:
         - Chat
-      summary: >
-        Creates a model response for the given chat conversation. Learn more in
-        the
-
-        [text generation](/docs/guides/text-generation),
-        [vision](/docs/guides/vision),
-
-        and [audio](/docs/guides/audio) guides.
+      summary: Creates a model response for the given chat conversation.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateChatCompletionRequest"
+              $ref: '#/components/schemas/CreateChatCompletionRequest'
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CreateChatCompletionResponse"
+                $ref: '#/components/schemas/CreateChatCompletionResponse'
       security:
         - BearerAuth: []
           ProjectIdAuth: []
@@ -83,6 +61,8 @@ paths:
     post:
       summary: Execute a query
       operationId: executeQuery
+      servers:
+      - url: https://api.us-east-1.langdb.ai
       tags:
         - Query
       requestBody:
@@ -104,24 +84,6 @@ paths:
                 type: string
                 format: binary
                 description: Server-Sent Events stream
-        '400':
-          description: Invalid request parameters
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
       security:
         - BearerAuth: []
           ProjectIdAuth: []
@@ -344,79 +306,29 @@ components:
       type: object
       properties:
         messages:
-          description: >
-            A list of messages comprising the conversation so far. Depending on
-            the
-
-            [model](/docs/models) you use, different message types (modalities)
-            are
-
+          description: |
+            A list of messages comprising the conversation so far. Depending on the
+            [model](/docs/models) you use, different message types (modalities) are
             supported, like [text](/docs/guides/text-generation),
-
             [images](/docs/guides/vision), and [audio](/docs/guides/audio).
           type: array
           minItems: 1
           items:
-            $ref: "#/components/schemas/ChatCompletionRequestMessage"
+            $ref: '#/components/schemas/ChatCompletionRequestMessage'
+          example: 
         model:
-          description: ID of the model to use. See the [model endpoint
-            compatibility](/docs/models#model-endpoint-compatibility) table for
-            details on which models work with the Chat API.
-          example: gpt-4o
-          anyOf:
-            - type: string
-            - type: string
-              enum:
-                - o1-preview
-                - o1-preview-2024-09-12
-                - o1-mini
-                - o1-mini-2024-09-12
-                - gpt-4o
-                - gpt-4o-2024-08-06
-                - gpt-4o-2024-05-13
-                - gpt-4o-2024-08-06
-                - gpt-4o-realtime-preview
-                - gpt-4o-realtime-preview-2024-10-01
-                - gpt-4o-audio-preview
-                - gpt-4o-audio-preview-2024-10-01
-                - chatgpt-4o-latest
-                - gpt-4o-mini
-                - gpt-4o-mini-2024-07-18
-                - gpt-4-turbo
-                - gpt-4-turbo-2024-04-09
-                - gpt-4-0125-preview
-                - gpt-4-turbo-preview
-                - gpt-4-1106-preview
-                - gpt-4-vision-preview
-                - gpt-4
-                - gpt-4-0314
-                - gpt-4-0613
-                - gpt-4-32k
-                - gpt-4-32k-0314
-                - gpt-4-32k-0613
-                - gpt-3.5-turbo
-                - gpt-3.5-turbo-16k
-                - gpt-3.5-turbo-0301
-                - gpt-3.5-turbo-0613
-                - gpt-3.5-turbo-1106
-                - gpt-3.5-turbo-0125
-                - gpt-3.5-turbo-16k-0613
-          x-oaiTypeLabel: string
+          description: ID of the model to use. 
+          example: finance_assistant_v1
         store:
           type: boolean
           default: false
           nullable: true
-          description: >
-            Whether or not to store the output of this chat completion request
-
-            for use in our [model distillation](/docs/guides/distillation) or
-            [evals](/docs/guides/evals) products.
+          description: |
+            Whether or not to store the output of this chat completion request.
         metadata:
           type: object
           nullable: true
-          description: |
-            Developer-defined tags and values used for filtering completions
-            in the [dashboard](https://platform.openai.com/chat-completions).
+          description: Developer-defined tags and values used for filtering completions.
           additionalProperties:
             type: string
         frequency_penalty:
@@ -425,14 +337,10 @@ components:
           minimum: -2
           maximum: 2
           nullable: true
-          description: >
-            Number between -2.0 and 2.0. Positive values penalize new tokens
-            based on their existing frequency in the text so far, decreasing the
-            model's likelihood to repeat the same line verbatim.
+          description: |
+            Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.
 
-
-            [See more information about frequency and presence
-            penalties.](/docs/guides/text-generation)
+            [See more information about frequency and presence penalties.](/docs/guides/text-generation)
         logit_bias:
           type: object
           x-oaiTypeLabel: map
@@ -440,89 +348,56 @@ components:
           nullable: true
           additionalProperties:
             type: integer
-          description: >
-            Modify the likelihood of specified tokens appearing in the
-            completion.
+          description: |
+            Modify the likelihood of specified tokens appearing in the completion.
 
-
-            Accepts a JSON object that maps tokens (specified by their token ID
-            in the tokenizer) to an associated bias value from -100 to 100.
-            Mathematically, the bias is added to the logits generated by the
-            model prior to sampling. The exact effect will vary per model, but
-            values between -1 and 1 should decrease or increase likelihood of
-            selection; values like -100 or 100 should result in a ban or
-            exclusive selection of the relevant token.
+            Accepts a JSON object that maps tokens (specified by their token ID in the tokenizer) to an associated bias value from -100 to 100. Mathematically, the bias is added to the logits generated by the model prior to sampling. The exact effect will vary per model, but values between -1 and 1 should decrease or increase likelihood of selection; values like -100 or 100 should result in a ban or exclusive selection of the relevant token.
         logprobs:
-          description: Whether to return log probabilities of the output tokens or not. If
-            true, returns the log probabilities of each output token returned in
-            the `content` of `message`.
+          description: Whether to return log probabilities of the output tokens or not. If true, returns the log probabilities of each output token returned in the `content` of `message`.
           type: boolean
           default: false
           nullable: true
         top_logprobs:
-          description: An integer between 0 and 20 specifying the number of most likely
-            tokens to return at each token position, each with an associated log
-            probability. `logprobs` must be set to `true` if this parameter is
-            used.
+          description: An integer between 0 and 20 specifying the number of most likely tokens to return at each token position, each with an associated log probability. `logprobs` must be set to `true` if this parameter is used.
           type: integer
           minimum: 0
           maximum: 20
           nullable: true
         max_tokens:
-          description: >
-            The maximum number of [tokens](/tokenizer) that can be generated in
-            the chat completion. This value can be used to control
-            [costs](https://openai.com/api/pricing/) for text generated via API.
-
-
-            This value is now deprecated in favor of `max_completion_tokens`,
-            and is not compatible with [o1 series
-            models](/docs/guides/reasoning).
+          description: The maximum number of [tokens](/tokenizer) that can be generated in the chat completion.
           type: integer
           nullable: true
           deprecated: true
         max_completion_tokens:
-          description: >
-            An upper bound for the number of tokens that can be generated for a
-            completion, including visible output tokens and [reasoning
-            tokens](/docs/guides/reasoning).
+          description: |
+            An upper bound for the number of tokens that can be generated for a completion, including visible output tokens and [reasoning tokens](/docs/guides/reasoning).
           type: integer
           nullable: true
-        n:
+        'n':
           type: integer
           minimum: 1
           maximum: 128
           default: 1
           example: 1
           nullable: true
-          description: How many chat completion choices to generate for each input
-            message. Note that you will be charged based on the number of
-            generated tokens across all of the choices. Keep `n` as `1` to
-            minimize costs.
+          description: How many chat completion choices to generate for each input message. Note that you will be charged based on the number of generated tokens across all of the choices. Keep `n` as `1` to minimize costs.
         modalities:
-          $ref: "#/components/schemas/ChatCompletionModalities"
+          $ref: '#/components/schemas/ChatCompletionModalities'
         prediction:
           nullable: true
           x-oaiExpandable: true
-          description: >
-            Configuration for a [Predicted
-            Output](/docs/guides/predicted-outputs),
-
-            which can greatly improve response times when large parts of the
-            model
-
+          description: |
+            Configuration for a [Predicted Output](/docs/guides/predicted-outputs),
+            which can greatly improve response times when large parts of the model
             response are known ahead of time. This is most common when you are
-
             regenerating a file with only minor changes to most of the content.
           oneOf:
-            - $ref: "#/components/schemas/PredictionContent"
+            - $ref: '#/components/schemas/PredictionContent'
         audio:
           type: object
           nullable: true
-          description: >
-            Parameters for audio output. Required when audio output is requested
-            with
-
+          description: |
+            Parameters for audio output. Required when audio output is requested with
             `modalities: ["audio"]`. [Learn more](/docs/guides/audio).
           required:
             - voice
@@ -540,12 +415,9 @@ components:
                 - sage
                 - shimmer
                 - verse
-              description: >
-                The voice the model uses to respond. Supported voices are
-                `alloy`,
-
-                `ash`, `ballad`, `coral`, `echo`, `sage`, `shimmer`, and
-                `verse`.
+              description: |
+                The voice the model uses to respond. Supported voices are `alloy`,
+                `ash`, `ballad`, `coral`, `echo`, `sage`, `shimmer`, and `verse`.
             format:
               type: string
               enum:
@@ -554,10 +426,8 @@ components:
                 - flac
                 - opus
                 - pcm16
-              description: >
-                Specifies the output audio format. Must be one of `wav`, `mp3`,
-                `flac`,
-
+              description: |
+                Specifies the output audio format. Must be one of `wav`, `mp3`, `flac`,
                 `opus`, or `pcm16`.
         presence_penalty:
           type: number
@@ -565,63 +435,33 @@ components:
           minimum: -2
           maximum: 2
           nullable: true
-          description: >
-            Number between -2.0 and 2.0. Positive values penalize new tokens
-            based on whether they appear in the text so far, increasing the
-            model's likelihood to talk about new topics.
+          description: |
+            Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.
 
-
-            [See more information about frequency and presence
-            penalties.](/docs/guides/text-generation)
+            [See more information about frequency and presence penalties.](/docs/guides/text-generation)
         response_format:
-          description: >
-            An object specifying the format that the model must output.
-            Compatible with [GPT-4o](/docs/models#gpt-4o), [GPT-4o
-            mini](/docs/models#gpt-4o-mini), [GPT-4
-            Turbo](/docs/models#gpt-4-turbo-and-gpt-4) and all GPT-3.5 Turbo
-            models newer than `gpt-3.5-turbo-1106`.
+          description: |
+            An object specifying the format that the model must output. Compatible with [GPT-4o](/docs/models#gpt-4o), [GPT-4o mini](/docs/models#gpt-4o-mini), [GPT-4 Turbo](/docs/models#gpt-4-turbo-and-gpt-4) and all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
+            Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured Outputs which ensures the model will match your supplied JSON schema. Learn more in the [Structured Outputs guide](/docs/guides/structured-outputs).
 
-            Setting to `{ "type": "json_schema", "json_schema": {...} }` enables
-            Structured Outputs which ensures the model will match your supplied
-            JSON schema. Learn more in the [Structured Outputs
-            guide](/docs/guides/structured-outputs).
+            Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the message the model generates is valid JSON.
 
-
-            Setting to `{ "type": "json_object" }` enables JSON mode, which
-            ensures the message the model generates is valid JSON.
-
-
-            **Important:** when using JSON mode, you **must** also instruct the
-            model to produce JSON yourself via a system or user message. Without
-            this, the model may generate an unending stream of whitespace until
-            the generation reaches the token limit, resulting in a long-running
-            and seemingly "stuck" request. Also note that the message content
-            may be partially cut off if `finish_reason="length"`, which
-            indicates the generation exceeded `max_tokens` or the conversation
-            exceeded the max context length.
+            **Important:** when using JSON mode, you **must** also instruct the model to produce JSON yourself via a system or user message. Without this, the model may generate an unending stream of whitespace until the generation reaches the token limit, resulting in a long-running and seemingly "stuck" request. Also note that the message content may be partially cut off if `finish_reason="length"`, which indicates the generation exceeded `max_tokens` or the conversation exceeded the max context length.
         seed:
           type: integer
           minimum: -9223372036854776000
           maximum: 9223372036854776000
           nullable: true
-          description: >
+          description: |
             This feature is in Beta.
-
-            If specified, our system will make a best effort to sample
-            deterministically, such that repeated requests with the same `seed`
-            and parameters should return the same result.
-
-            Determinism is not guaranteed, and you should refer to the
-            `system_fingerprint` response parameter to monitor changes in the
-            backend.
+            If specified, our system will make a best effort to sample deterministically, such that repeated requests with the same `seed` and parameters should return the same result.
+            Determinism is not guaranteed, and you should refer to the `system_fingerprint` response parameter to monitor changes in the backend.
           x-oaiMeta:
             beta: true
         service_tier:
-          description: >
-            Specifies the latency tier to use for processing the request. This
-            parameter is relevant for customers subscribed to the scale tier
-            service:
+          description: |
+            Specifies the latency tier to use for processing the request. This parameter is relevant for customers subscribed to the scale tier service:
               - If set to 'auto', and the Project is Scale tier enabled, the system will utilize scale tier credits until they are exhausted.
               - If set to 'auto', and the Project is not Scale tier enabled, the request will be processed using the default service tier with a lower uptime SLA and no latency guarentee.
               - If set to 'default', the request will be processed using the default service tier with a lower uptime SLA and no latency guarentee.
@@ -647,18 +487,12 @@ components:
               items:
                 type: string
         stream:
-          description: >
-            If set, partial message deltas will be sent, like in ChatGPT. Tokens
-            will be sent as data-only [server-sent
-            events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
-            as they become available, with the stream terminated by a `data:
-            [DONE]` message. [Example Python
-            code](https://cookbook.openai.com/examples/how_to_stream_completions).
+          description: 'If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format) as they become available, with the stream terminated by a `data: [DONE]` message.'
           type: boolean
           nullable: true
           default: false
         stream_options:
-          $ref: "#/components/schemas/ChatCompletionStreamOptions"
+          $ref: '#/components/schemas/ChatCompletionStreamOptions'
         temperature:
           type: number
           minimum: 0
@@ -666,11 +500,8 @@ components:
           default: 1
           example: 1
           nullable: true
-          description: >
-            What sampling temperature to use, between 0 and 2. Higher values
-            like 0.8 will make the output more random, while lower values like
-            0.2 will make it more focused and deterministic.
-
+          description: |
+            What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
 
             We generally recommend altering this or `top_p` but not both.
         top_p:
@@ -680,64 +511,43 @@ components:
           default: 1
           example: 1
           nullable: true
-          description: >
-            An alternative to sampling with temperature, called nucleus
-            sampling, where the model considers the results of the tokens with
-            top_p probability mass. So 0.1 means only the tokens comprising the
-            top 10% probability mass are considered.
-
+          description: |
+            An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
 
             We generally recommend altering this or `temperature` but not both.
         tools:
           type: array
-          description: >
-            A list of tools the model may call. Currently, only functions are
-            supported as a tool. Use this to provide a list of functions the
-            model may generate JSON inputs for. A max of 128 functions are
-            supported.
+          description: |
+            A list of tools the model may call. Currently, only functions are supported as a tool. Use this to provide a list of functions the model may generate JSON inputs for. A max of 128 functions are supported.
           items:
-            $ref: "#/components/schemas/ChatCompletionTool"
+            $ref: '#/components/schemas/ChatCompletionTool'
         tool_choice:
-          $ref: "#/components/schemas/ChatCompletionToolChoiceOption"
+          $ref: '#/components/schemas/ChatCompletionToolChoiceOption'
         parallel_tool_calls:
-          $ref: "#/components/schemas/ParallelToolCalls"
+          $ref: '#/components/schemas/ParallelToolCalls'
         user:
           type: string
           example: user-1234
-          description: >
-            A unique identifier representing your end-user, which can help
-            OpenAI to monitor and detect abuse. [Learn
-            more](/docs/guides/safety-best-practices#end-user-ids).
+          description: A unique identifier representing your end-user.
         function_call:
           deprecated: true
-          description: >
+          description: |
             Deprecated in favor of `tool_choice`.
 
-
             Controls which (if any) function is called by the model.
+            `none` means the model will not call a function and instead generates a message.
+            `auto` means the model can pick between generating a message or calling a function.
+            Specifying a particular function via `{"name": "my_function"}` forces the model to call that function.
 
-            `none` means the model will not call a function and instead
-            generates a message.
-
-            `auto` means the model can pick between generating a message or
-            calling a function.
-
-            Specifying a particular function via `{"name": "my_function"}`
-            forces the model to call that function.
-
-
-            `none` is the default when no functions are present. `auto` is the
-            default if functions are present.
+            `none` is the default when no functions are present. `auto` is the default if functions are present.
           oneOf:
             - type: string
-              description: >
-                `none` means the model will not call a function and instead
-                generates a message. `auto` means the model can pick between
-                generating a message or calling a function.
+              description: |
+                `none` means the model will not call a function and instead generates a message. `auto` means the model can pick between generating a message or calling a function.
               enum:
                 - none
                 - auto
-            - $ref: "#/components/schemas/ChatCompletionFunctionCallOption"
+            - $ref: '#/components/schemas/ChatCompletionFunctionCallOption'
           x-oaiExpandable: true
         functions:
           deprecated: true
@@ -749,22 +559,20 @@ components:
           minItems: 1
           maxItems: 128
           items:
-            $ref: "#/components/schemas/ChatCompletionFunctions"
+            $ref: '#/components/schemas/ChatCompletionFunctions'
       required:
         - model
         - messages
     CreateChatCompletionResponse:
       type: object
-      description: Represents a chat completion response returned by model, based on
-        the provided input.
+      description: Represents a chat completion response returned by model, based on the provided input.
       properties:
         id:
           type: string
           description: A unique identifier for the chat completion.
         choices:
           type: array
-          description: A list of chat completion choices. Can be more than one if `n` is
-            greater than 1.
+          description: A list of chat completion choices. Can be more than one if `n` is greater than 1.
           items:
             type: object
             required:
@@ -775,19 +583,11 @@ components:
             properties:
               finish_reason:
                 type: string
-                description: >
-                  The reason the model stopped generating tokens. This will be
-                  `stop` if the model hit a natural stop point or a provided
-                  stop sequence,
-
-                  `length` if the maximum number of tokens specified in the
-                  request was reached,
-
-                  `content_filter` if content was omitted due to a flag from our
-                  content filters,
-
-                  `tool_calls` if the model called a tool, or `function_call`
-                  (deprecated) if the model called a function.
+                description: |
+                  The reason the model stopped generating tokens. This will be `stop` if the model hit a natural stop point or a provided stop sequence,
+                  `length` if the maximum number of tokens specified in the request was reached,
+                  `content_filter` if content was omitted due to a flag from our content filters,
+                  `tool_calls` if the model called a tool, or `function_call` (deprecated) if the model called a function.
                 enum:
                   - stop
                   - length
@@ -798,7 +598,7 @@ components:
                 type: integer
                 description: The index of the choice in the list of choices.
               message:
-                $ref: "#/components/schemas/ChatCompletionResponseMessage"
+                $ref: '#/components/schemas/ChatCompletionResponseMessage'
               logprobs:
                 description: Log probability information for the choice.
                 type: object
@@ -808,28 +608,25 @@ components:
                     description: A list of message content tokens with log probability information.
                     type: array
                     items:
-                      $ref: "#/components/schemas/ChatCompletionTokenLogprob"
+                      $ref: '#/components/schemas/ChatCompletionTokenLogprob'
                     nullable: true
                   refusal:
                     description: A list of message refusal tokens with log probability information.
                     type: array
                     items:
-                      $ref: "#/components/schemas/ChatCompletionTokenLogprob"
+                      $ref: '#/components/schemas/ChatCompletionTokenLogprob'
                     nullable: true
                 required:
                   - content
                   - refusal
         created:
           type: integer
-          description: The Unix timestamp (in seconds) of when the chat completion was
-            created.
+          description: The Unix timestamp (in seconds) of when the chat completion was created.
         model:
           type: string
           description: The model used for the chat completion.
         service_tier:
-          description: The service tier used for processing the request. This field is
-            only included if the `service_tier` parameter is specified in the
-            request.
+          description: The service tier used for processing the request. This field is only included if the `service_tier` parameter is specified in the request.
           type: string
           enum:
             - scale
@@ -838,21 +635,17 @@ components:
           nullable: true
         system_fingerprint:
           type: string
-          description: >
-            This fingerprint represents the backend configuration that the model
-            runs with.
+          description: |
+            This fingerprint represents the backend configuration that the model runs with.
 
-
-            Can be used in conjunction with the `seed` request parameter to
-            understand when backend changes have been made that might impact
-            determinism.
+            Can be used in conjunction with the `seed` request parameter to understand when backend changes have been made that might impact determinism.
         object:
           type: string
           description: The object type, which is always `chat.completion`.
           enum:
             - chat.completion
         usage:
-          $ref: "#/components/schemas/CompletionUsage"
+          $ref: '#/components/schemas/CompletionUsage'
       required:
         - choices
         - created
@@ -898,25 +691,23 @@ components:
     ExecuteRequest:
       type: object
       properties:
-        api_name:
-          type: string
-          description: Name of the API action to execute
-        params:
-          type: object
-          additionalProperties:
-            type: string
-          description: Parameters required for the action
-        columns:
-          type: array
-          items:
-            type: string
-          description: Optional list of columns to retrieve
         query:
           type: string
           description: The query to be executed.
+          example: SELECT * FROM langdb.models;
+        params:
+          description: Parameters required for the action
+          oneOf:
+            - type: object
+              description: An empty object
+              properties: {}
+              additionalProperties: false
+            - type: object
+              description: An object with string properties
+              additionalProperties:
+                type: string
       required:
-        - api_name
-        - params
+        - query
     ExecuteResponse:
       type: object
       description: Result of the executed action
@@ -1222,7 +1013,7 @@ components:
       properties:
         type:
           type: string
-          description: "The type of response format being defined: `json_object`"
+          description: 'The type of response format being defined: `json_object`'
           enum:
             - json_object
       required:
@@ -1232,7 +1023,7 @@ components:
       properties:
         type:
           type: string
-          description: "The type of response format being defined: `json_schema`"
+          description: 'The type of response format being defined: `json_schema`'
           enum:
             - json_schema
         json_schema:
@@ -1240,23 +1031,17 @@ components:
           properties:
             description:
               type: string
-              description: A description of what the response format is for, used by the model
-                to determine how to respond in the format.
+              description: A description of what the response format is for, used by the model to determine how to respond in the format.
             name:
               type: string
-              description: The name of the response format. Must be a-z, A-Z, 0-9, or contain
-                underscores and dashes, with a maximum length of 64.
+              description: The name of the response format. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64.
             schema:
-              $ref: "#/components/schemas/ResponseFormatJsonSchemaSchema"
+              $ref: '#/components/schemas/ResponseFormatJsonSchemaSchema'
             strict:
               type: boolean
               nullable: true
               default: false
-              description: Whether to enable strict schema adherence when generating the
-                output. If set to true, the model will always follow the exact
-                schema defined in the `schema` field. Only a subset of JSON
-                Schema is supported when `strict` is `true`. To learn more, read
-                the [Structured Outputs guide](/docs/guides/structured-outputs).
+              description: Whether to enable strict schema adherence when generating the output. If set to true, the model will always follow the exact schema defined in the `schema` field. Only a subset of JSON Schema is supported when `strict` is `true`. To learn more, read the [Structured Outputs guide](/docs/guides/structured-outputs).
           required:
             - type
             - name
@@ -1272,7 +1057,7 @@ components:
       properties:
         type:
           type: string
-          description: "The type of response format being defined: `text`"
+          description: 'The type of response format being defined: `text`'
           enum:
             - text
       required:
@@ -1340,7 +1125,7 @@ components:
     ChatCompletionMessageToolCalls:
       type: array
       items:
-        $ref: "#/components/schemas/ChatCompletionMessageToolCall"
+        $ref: '#/components/schemas/ChatCompletionMessageToolCall'
     ChatCompletionModalities:
       type: array
       description: A list of modalities to include in the response.
@@ -1380,24 +1165,24 @@ components:
               nullable: true
             - type: array
               items:
-                $ref: "#/components/schemas/ChatCompletionRequestAssistantMessageContentPart"
+                $ref: '#/components/schemas/ChatCompletionRequestAssistantMessageContentPart'
         role:
           type: string
           enum:
             - assistant
         tool_calls:
-          $ref: "#/components/schemas/ChatCompletionMessageToolCalls"
+          $ref: '#/components/schemas/ChatCompletionMessageToolCalls'
         name:
           type: string
           maxLength: 64
-          pattern: "^[a-zA-Z0-9_-]+$"
+          pattern: ^[a-zA-Z0-9_-]+$
           description: An optional name for the participant. Provides the model information about who is speaking.
       required:
         - role
     ChatCompletionRequestAssistantMessageContentPart:
       oneOf:
-        - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
-        - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartRefusal"
+        - $ref: '#/components/schemas/ChatCompletionRequestMessageContentPartText'
+        - $ref: '#/components/schemas/ChatCompletionRequestMessageContentPartRefusal'
     ChatCompletionRequestFunctionMessage:
       type: object
       title: Function message
@@ -1418,11 +1203,11 @@ components:
         - name
     ChatCompletionRequestMessage:
       oneOf:
-        - $ref: "#/components/schemas/ChatCompletionRequestSystemMessage"
-        - $ref: "#/components/schemas/ChatCompletionRequestUserMessage"
-        - $ref: "#/components/schemas/ChatCompletionRequestAssistantMessage"
-        - $ref: "#/components/schemas/ChatCompletionRequestToolMessage"
-        - $ref: "#/components/schemas/ChatCompletionRequestFunctionMessage"
+        - $ref: '#/components/schemas/ChatCompletionRequestSystemMessage'
+        - $ref: '#/components/schemas/ChatCompletionRequestUserMessage'
+        - $ref: '#/components/schemas/ChatCompletionRequestAssistantMessage'
+        - $ref: '#/components/schemas/ChatCompletionRequestToolMessage'
+        - $ref: '#/components/schemas/ChatCompletionRequestFunctionMessage'
     ChatCompletionRequestMessageContentPartAudio:
       type: object
       title: Audio content part
@@ -1437,7 +1222,7 @@ components:
             url:
               type: string
               format: uri
-              pattern: "^https?://"
+              pattern: ^https?://
               description: The URL of the audio file.
           required:
             - url
@@ -1458,7 +1243,7 @@ components:
             url:
               type: string
               format: uri
-              pattern: "^https?://"
+              pattern: ^https?://
               description: Either a URL of the image or the base64 encoded image data.
             detail:
               type: string
@@ -1527,7 +1312,7 @@ components:
         name:
           type: string
           maxLength: 64
-          pattern: "^[a-zA-Z0-9_-]+$"
+          pattern: ^[a-zA-Z0-9_-]+$
           description: An optional name for the participant. Provides the model information about who is speaking.
       required:
         - content
@@ -1560,9 +1345,9 @@ components:
             - type: array
               items:
                 oneOf:
-                  - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
-                  - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartImage"
-                  - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartAudio"
+                  - $ref: '#/components/schemas/ChatCompletionRequestMessageContentPartText'
+                  - $ref: '#/components/schemas/ChatCompletionRequestMessageContentPartImage'
+                  - $ref: '#/components/schemas/ChatCompletionRequestMessageContentPartAudio'
         role:
           type: string
           enum:
@@ -1570,7 +1355,7 @@ components:
         name:
           type: string
           maxLength: 64
-          pattern: "^[a-zA-Z0-9_-]+$"
+          pattern: ^[a-zA-Z0-9_-]+$
           description: An optional name for the participant. Provides the model information about who is speaking.
       required:
         - content
@@ -1589,13 +1374,13 @@ components:
         tool_calls:
           type: array
           items:
-            $ref: "#/components/schemas/ChatCompletionMessageToolCall"
+            $ref: '#/components/schemas/ChatCompletionMessageToolCall'
         function_call:
-          $ref: "#/components/schemas/ChatCompletionFunctionCallOption"
+          $ref: '#/components/schemas/ChatCompletionFunctionCallOption'
       required:
         - role
     ChatCompletionStreamOptions:
-      description: "Options for streaming response. Only set this when you set `stream: true`"
+      description: 'Options for streaming response. Only set this when you set `stream: true`'
       type: object
       properties:
         chunk_size:
@@ -1623,35 +1408,27 @@ components:
             - function
           description: The type of the tool. Currently, only `function` is supported.
         function:
-          $ref: "#/components/schemas/FunctionObject"
+          $ref: '#/components/schemas/FunctionObject'
       required:
         - type
         - function
     ChatCompletionToolChoiceOption:
-      description: >
-        Controls which (if any) tool is called by the model.
-        `none` means the model will not call any tool and instead generates a message.
-        `auto` means the model can pick between generating a message or calling one or more tools.
-        `required` means the model must call one or more tools.
-        Specifying a particular tool via `{"type": "function", "function": {"name": "my_function"}}` forces the model to call that tool.
-        `none` is the default when no tools are present. `auto` is the default if tools are present.
+      description: |
+        Controls which (if any) tool is called by the model. `none` means the model will not call any tool and instead generates a message. `auto` means the model can pick between generating a message or calling one or more tools. `required` means the model must call one or more tools. Specifying a particular tool via `{"type": "function", "function": {"name": "my_function"}}` forces the model to call that tool. `none` is the default when no tools are present. `auto` is the default if tools are present.
       oneOf:
         - type: string
-          description: >
-            `none` means the model will not call any tool and instead generates a message.
-            `auto` means the model can pick between generating a message or calling one or more tools.
-            `required` means the model must call one or more tools.
+          description: |
+            `none` means the model will not call any tool and instead generates a message. `auto` means the model can pick between generating a message or calling one or more tools. `required` means the model must call one or more tools.
           enum:
             - none
             - auto
             - required
-        - $ref: "#/components/schemas/ChatCompletionNamedToolChoice"
+        - $ref: '#/components/schemas/ChatCompletionNamedToolChoice'
       x-oaiExpandable: true
     ParallelToolCalls:
       type: integer
-      description: >
-        The maximum number of tool calls that can be made in parallel. If not set, defaults to 1.
-        Set this to a number greater than 1 to enable parallel tool calls.
+      description: |
+        The maximum number of tool calls that can be made in parallel. If not set, defaults to 1. Set this to a number greater than 1 to enable parallel tool calls.
       minimum: 1
       default: 1
     ChatCompletionTokenLogprob:
@@ -1697,55 +1474,39 @@ components:
       properties:
         description:
           type: string
-          description: A description of what the function does, used by the model to
-            choose when and how to call the function.
+          description: A description of what the function does, used by the model to choose when and how to call the function.
         name:
           type: string
-          description: The name of the function to be called. Must be a-z, A-Z, 0-9, or
-            contain underscores and dashes, with a maximum length of 64.
+          description: The name of the function to be called. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64.
         parameters:
-          $ref: "#/components/schemas/FunctionParameters"
+          $ref: '#/components/schemas/FunctionParameters'
         strict:
           type: boolean
           nullable: true
           default: false
-          description: Whether to enable strict schema adherence when generating the
-            function call. If set to true, the model will follow the exact
-            schema defined in the `parameters` field. Only a subset of JSON
-            Schema is supported when `strict` is `true`. Learn more about
-            Structured Outputs in the [function calling
-            guide](docs/guides/function-calling).
+          description: Whether to enable strict schema adherence when generating the function call. If set to true, the model will follow the exact schema defined in the `parameters` field. Only a subset of JSON Schema is supported when `strict` is `true`. Learn more about Structured Outputs in the [function calling guide](docs/guides/function-calling).
       required:
         - name
     FunctionParameters:
       type: object
-      description: >-
-        The parameters the functions accepts, described as a JSON Schema object.
-        See the [guide](/docs/guides/function-calling) for examples, and the
-        [JSON Schema
-        reference](https://json-schema.org/understanding-json-schema/) for
-        documentation about the format. 
-
+      description: |-
+        The parameters the functions accepts, described as a JSON Schema object. See the [guide](/docs/guides/function-calling) for examples, and the [JSON Schema reference](https://json-schema.org/understanding-json-schema/) for documentation about the format. 
 
         Omitting `parameters` defines a function with an empty parameter list.
       additionalProperties: true
     Image:
       type: object
-      description: Represents the url or the content of an image generated by the
-        OpenAI API.
+      description: Represents the url or the content of an image generated by the API.
       properties:
         b64_json:
           type: string
-          description: The base64-encoded JSON of the generated image, if
-            `response_format` is `b64_json`.
+          description: The base64-encoded JSON of the generated image, if `response_format` is `b64_json`.
         url:
           type: string
-          description: The URL of the generated image, if `response_format` is `url`
-            (default).
+          description: The URL of the generated image, if `response_format` is `url` (default).
         revised_prompt:
           type: string
-          description: The prompt that was used to generate the image, if there was any
-            revision to the prompt.
+          description: The prompt that was used to generate the image, if there was any revision to the prompt.
       x-oaiMeta:
         name: The image object
         example: |
@@ -1783,16 +1544,11 @@ components:
               description: Tokens generated by the model for reasoning.
             rejected_prediction_tokens:
               type: integer
-              description: >
+              description: |
                 When using Predicted Outputs, the number of tokens in the
-
                 prediction that did not appear in the completion. However, like
-
                 reasoning tokens, these tokens are still counted in the total
-
-                completion tokens for purposes of billing, output, and context
-                window
-
+                completion tokens for purposes of billing, output, and context window
                 limits.
         prompt_tokens_details:
           type: object
@@ -1811,9 +1567,8 @@ components:
     PredictionContent:
       type: object
       title: Static Content
-      description: >
-        Static predicted output content, such as the content of a text file that
-        is being regenerated.
+      description: |
+        Static predicted output content, such as the content of a text file that is being regenerated.
       required:
         - type
         - content
@@ -1827,10 +1582,8 @@ components:
             currently always `content`.
         content:
           x-oaiExpandable: true
-          description: >
-            The content that should be matched when generating a model response.
-            If generated tokens would match this content, the entire model
-            response can be returned much more quickly.
+          description: |
+            The content that should be matched when generating a model response. If generated tokens would match this content, the entire model response can be returned much more quickly.
           oneOf:
             - type: string
               title: Text content
@@ -1838,17 +1591,15 @@ components:
                 The content used for a Predicted Output. This is often the
                 text of a file you are regenerating with minor changes.
             - type: array
-              description: An array of content parts with a defined type. Supported options
-                differ based on the model being used to generate
-                the response. Can contain text inputs.
+              description: An array of content parts with a defined type. Supported options differ based on the model being used to generate the response. Can contain text inputs.
               title: Array of content parts
               items:
-                $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+                $ref: '#/components/schemas/ChatCompletionRequestMessageContentPartText'
               minItems: 1
 tags:
   - name: Auth
     description: API related to authentication and authorization.
-  - name: Integrations
-    description: API for managing integrations with external sources.
   - name: Query
     description: API for querying
+  - name: Chat
+    description: API for chat completions
