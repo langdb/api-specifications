@@ -812,32 +812,31 @@
       "ExecuteRequest": {
         "type": "object",
         "properties": {
-          "api_name": {
-            "type": "string",
-            "description": "Name of the API action to execute"
-          },
-          "params": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            },
-            "description": "Parameters required for the action"
-          },
-          "columns": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Optional list of columns to retrieve"
-          },
           "query": {
             "type": "string",
             "description": "The query to be executed."
+          },
+          "params": {
+            "description": "Parameters required for the action",
+            "oneOf": [
+              {
+                "type": "object",
+                "description": "An empty object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "description": "An object with string properties",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            ]
           }
         },
         "required": [
-          "api_name",
-          "params"
+          "query"
         ]
       },
       "ExecuteResponse": {
