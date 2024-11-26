@@ -4,13 +4,13 @@ info:
   version: '1.0'
 servers:
   - url: https://api.us-east-1.langdb.ai
+    description: LangDB API Server
 paths:
   /oauth2/token:
     post:
       summary: Get OAuth2 Access Token
       operationId: getOAuth2AccessToken
-      servers:
-        - url: https://api.us-east-1.langdb.ai
+
       parameters:
         - name: client_id
           in: header
@@ -36,8 +36,7 @@ paths:
   /chat/completions:
     post:
       operationId: createChatCompletion
-      servers:
-      - url: https://api.us-east-1.langdb.ai
+
       tags:
         - Chat
       summary: Creates a model response for the given chat conversation.
@@ -151,8 +150,6 @@ paths:
     post:
       summary: Execute a query
       operationId: executeQuery
-      servers:
-      - url: https://api.us-east-1.langdb.ai
       tags:
         - Query
       requestBody:
