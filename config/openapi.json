@@ -105,51 +105,7 @@
           }
         ]
       }
-    },
-    "/query": {
-      "post": {
-        "summary": "Execute a query",
-        "operationId": "executeQuery",
-        "tags": [
-          "Query"
-        ],
-        "requestBody": {
-          "description": "Input for executing a query",
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ExecuteRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Query executed successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/QueryResult"
-                }
-              },
-              "text/event-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary",
-                  "description": "Server-Sent Events stream"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": [],
-            "ProjectIdAuth": []
-          }
-        ]
-      }
+    }
     },
     "/models": {
       "get": {
@@ -157,7 +113,7 @@
         "tags": [
           "Models"
         ],
-        "summary": "Lists the currently available models, and provides basic information about each one such as the provider and availability.",
+        "summary": "Lists the currently available models.",
         "responses": {
           "200": {
             "description": "OK",
