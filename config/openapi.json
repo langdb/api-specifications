@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "API for LangDB",
+    "title": "API for AI Gateway",
     "version": "1.0"
   },
   "servers": [
@@ -105,7 +105,6 @@
           }
         ]
       }
-    }
     },
     "/models": {
       "get": {
@@ -2172,10 +2171,6 @@
     {
       "name": "Auth",
       "description": "API related to authentication and authorization."
-    },
-    {
-      "name": "Query",
-      "description": "API for querying"
     },
     {
       "name": "Chat",
