@@ -124,7 +124,13 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "BearerAuth": [],
+            "ProjectIdAuth": []
+          }
+        ]
       }
     }
   },
@@ -2171,10 +2177,6 @@
     {
       "name": "Auth",
       "description": "API related to authentication and authorization."
-    },
-    {
-      "name": "Query",
-      "description": "API for querying"
     },
     {
       "name": "Chat",

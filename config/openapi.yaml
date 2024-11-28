@@ -148,6 +148,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListModelsResponse'
+      security:
+        - BearerAuth: []
+          ProjectIdAuth: []
 components:
   securitySchemes:
     BearerAuth:
@@ -1732,7 +1735,5 @@ components:
 tags:
   - name: Auth
     description: API related to authentication and authorization.
-  - name: Query
-    description: API for querying
   - name: Chat
     description: API for chat completions
