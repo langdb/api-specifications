@@ -1,6 +1,6 @@
 openapi: 3.0.1
 info:
-  title: API for AI Gateway
+  title: AI Gateway API
   version: '1.0'
 servers:
   - url: https://api.us-east-1.langdb.ai
@@ -10,7 +10,6 @@ paths:
     post:
       summary: Get OAuth2 Access Token
       operationId: getOAuth2AccessToken
-
       parameters:
         - name: client_id
           in: header
@@ -36,7 +35,6 @@ paths:
   /chat/completions:
     post:
       operationId: createChatCompletion
-
       tags:
         - Chat
       summary: Creates a model response for the given chat conversation.
@@ -56,11 +54,8 @@ paths:
       x-oaiMeta:
         name: Create chat completion
         group: chat
-        returns: >
-          Returns a [chat completion](/docs/api-reference/chat/object) object,
-          or a streamed sequence of [chat completion
-          chunk](/docs/api-reference/chat/streaming) objects if the request is
-          streamed.
+        returns: |
+          Returns a [chat completion](/docs/api-reference/chat/object) object, or a streamed sequence of [chat completion chunk](/docs/api-reference/chat/streaming) objects if the request is streamed.
         path: create
         examples:
           - title: Default
@@ -82,11 +77,9 @@ paths:
                       }
                     ]
                   }'
-              python: >
+              python: |
                 from openai import OpenAI
-
                 client = OpenAI()
-
 
                 completion = client.chat.completions.create(
                   model="VAR_model_id",
@@ -96,14 +89,11 @@ paths:
                   ]
                 )
 
-
                 print(completion.choices[0].message)
-              node.js: >-
+              node.js: |-
                 import OpenAI from "openai";
 
-
                 const openai = new OpenAI();
-
 
                 async function main() {
                   const completion = await openai.chat.completions.create({
@@ -113,7 +103,6 @@ paths:
 
                   console.log(completion.choices[0]);
                 }
-
 
                 main();
             response: |
@@ -146,57 +135,19 @@ paths:
       security:
         - BearerAuth: []
           ProjectIdAuth: []
-  /query:
-    post:
-      summary: Execute a query
-      operationId: executeQuery
-      tags:
-        - Query
-      requestBody:
-        description: Input for executing a query
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ExecuteRequest'
-      responses:
-        '200':
-          description: Query executed successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/QueryResult'
-            text/event-stream:
-              schema:
-                type: string
-                format: binary
-                description: Server-Sent Events stream
-      security:
-        - BearerAuth: []
-          ProjectIdAuth: []
-
   /models:
     get:
       operationId: listModels
       tags:
         - Models
-      summary: Lists the currently available models, and provides basic information
-        about each one such as the provider and availability.
+      summary: Lists the currently available models.
       responses:
         '200':
-          description: Query executed successfully
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/QueryResult'
-            text/event-stream:
-              schema:
-                type: string
-                format: binary
-                description: Server-Sent Events stream
-      security:
-        - BearerAuth: []
-          ProjectIdAuth: []
+                $ref: '#/components/schemas/ListModelsResponse'
 components:
   securitySchemes:
     BearerAuth:
@@ -425,9 +376,8 @@ components:
           minItems: 1
           items:
             $ref: '#/components/schemas/ChatCompletionRequestMessage'
-
         model:
-          description: ID of the model to use. 
+          description: ID of the model to use.
           example: gpt-4o
         store:
           type: boolean
@@ -1421,11 +1371,10 @@ components:
               description: The contents of the system message.
               title: Text content
             - type: array
-              description: An array of content parts with a defined type. For system messages,
-                only type `text` is supported.
+              description: An array of content parts with a defined type. For system messages, only type `text` is supported.
               title: Array of content parts
               items:
-                $ref: "#/components/schemas/ChatCompletionRequestSystemMessageContentPart"
+                $ref: '#/components/schemas/ChatCompletionRequestSystemMessageContentPart'
               minItems: 1
         role:
           type: string
@@ -1434,13 +1383,10 @@ components:
           description: The role of the messages author, in this case `system`.
         name:
           type: string
-          description: An optional name for the participant. Provides the model
-            information to differentiate between participants of the same role.
+          description: An optional name for the participant. Provides the model information to differentiate between participants of the same role.
       required:
         - content
         - role
-
-
     ChatCompletionRequestToolMessage:
       type: object
       title: Tool message
@@ -1456,11 +1402,10 @@ components:
               description: The contents of the tool message.
               title: Text content
             - type: array
-              description: An array of content parts with a defined type. For tool messages,
-                only type `text` is supported.
+              description: An array of content parts with a defined type. For tool messages, only type `text` is supported.
               title: Array of content parts
               items:
-                $ref: "#/components/schemas/ChatCompletionRequestToolMessageContentPart"
+                $ref: '#/components/schemas/ChatCompletionRequestToolMessageContentPart'
               minItems: 1
           description: The contents of the tool message.
         tool_call_id:
@@ -1561,12 +1506,11 @@ components:
       x-oaiExpandable: true
     ChatCompletionRequestSystemMessageContentPart:
       oneOf:
-        - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+        - $ref: '#/components/schemas/ChatCompletionRequestMessageContentPartText'
       x-oaiExpandable: true
-
     ChatCompletionRequestToolMessageContentPart:
       oneOf:
-        - $ref: "#/components/schemas/ChatCompletionRequestMessageContentPartText"
+        - $ref: '#/components/schemas/ChatCompletionRequestMessageContentPartText'
       x-oaiExpandable: true
     ParallelToolCalls:
       type: integer
@@ -1739,8 +1683,56 @@ components:
               items:
                 $ref: '#/components/schemas/ChatCompletionRequestMessageContentPartText'
               minItems: 1
+    ListModelsResponse:
+      type: object
+      properties:
+        object:
+          type: string
+          enum:
+            - list
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Model'
+      required:
+        - object
+        - data
+    Model:
+      title: Model
+      description: Describes an LLM model offering that can be used with the API.
+      properties:
+        id:
+          type: string
+          description: The model identifier, which can be referenced in the API endpoints.
+        created:
+          type: integer
+          description: The Unix timestamp (in seconds) when the model was created.
+        object:
+          type: string
+          description: The object type, which is always "model".
+          enum:
+            - model
+        owned_by:
+          type: string
+          description: The organization that owns the model.
+      required:
+        - id
+        - object
+        - created
+        - owned_by
+      x-oaiMeta:
+        name: The model object
+        example: |
+          {
+            "id": "VAR_model_id",
+            "object": "model",
+            "created": 1686935002,
+            "owned_by": "openai"
+          }
 tags:
   - name: Auth
     description: API related to authentication and authorization.
+  - name: Query
+    description: API for querying
   - name: Chat
     description: API for chat completions
