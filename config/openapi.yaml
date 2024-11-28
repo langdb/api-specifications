@@ -146,22 +146,34 @@ paths:
       security:
         - BearerAuth: []
           ProjectIdAuth: []
-
-  /models:
-    get:
-      operationId: listModels
+  /query:
+    post:
+      summary: Execute a query
+      operationId: executeQuery
       tags:
-        - Models
-      summary: Lists the currently available models.
+        - Query
+      requestBody:
+        description: Input for executing a query
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecuteRequest'
       responses:
-        "200":
-          description: OK
+        '200':
+          description: Query executed successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ListModelsResponse"
-
-
+                $ref: '#/components/schemas/QueryResult'
+            text/event-stream:
+              schema:
+                type: string
+                format: binary
+                description: Server-Sent Events stream
+      security:
+        - BearerAuth: []
+          ProjectIdAuth: []
 components:
   securitySchemes:
     BearerAuth:
@@ -1704,52 +1716,6 @@ components:
               items:
                 $ref: '#/components/schemas/ChatCompletionRequestMessageContentPartText'
               minItems: 1
-    ListModelsResponse:
-      type: object
-      properties:
-        object:
-          type: string
-          enum:
-            - list
-        data:
-          type: array
-          items:
-            $ref: "#/components/schemas/Model"
-      required:
-        - object
-        - data
-    Model:
-      title: Model
-      description: Describes an LLM model offering that can be used with the API.
-      properties:
-        id:
-          type: string
-          description: The model identifier, which can be referenced in the API endpoints.
-        created:
-          type: integer
-          description: The Unix timestamp (in seconds) when the model was created.
-        object:
-          type: string
-          description: The object type, which is always "model".
-          enum:
-            - model
-        owned_by:
-          type: string
-          description: The organization that owns the model.
-      required:
-        - id
-        - object
-        - created
-        - owned_by
-      x-oaiMeta:
-        name: The model object
-        example: |
-          {
-            "id": "VAR_model_id",
-            "object": "model",
-            "created": 1686935002,
-            "owned_by": "openai"
-          }
 tags:
   - name: Auth
     description: API related to authentication and authorization.
