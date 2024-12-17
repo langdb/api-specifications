@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "https://api.staging.langdb.ai",
+      "url": "https://api.us-east-1.langdb.ai",
       "description": "LangDB API Server"
     }
   ],

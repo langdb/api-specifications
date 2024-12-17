@@ -3,7 +3,7 @@ info:
   title: AI Gateway API
   version: '1.0'
 servers:
-  - url: https://api.staging.langdb.ai
+  - url: https://api.us-east-1.langdb.ai
     description: LangDB API Server
 paths:
   /chat/completions:
@@ -1707,7 +1707,5 @@ components:
             "owned_by": "openai"
           }
 tags:
-  - name: Auth
-    description: API related to authentication and authorization.
   - name: Chat
     description: API for chat completions
