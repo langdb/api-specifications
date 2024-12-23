@@ -11,7 +11,7 @@ paths:
       operationId: createChatCompletion
       tags:
         - Chat
-      summary: Creates a model response for the given chat conversation.
+      summary: Creates a model response.
       requestBody:
         required: true
         content:
@@ -114,7 +114,7 @@ paths:
       operationId: listModels
       tags:
         - Models
-      summary: Lists the currently available models.
+      summary: Lists available models.
       responses:
         '200':
           description: OK
