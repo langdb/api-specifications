@@ -98,7 +98,7 @@
         "tags": [
           "Trace"
         ],
-        "summary": "Retrieve a trace by ID",
+        "summary": "Retrieve a trace by ID.",
         "description": "Returns detailed information about a trace, including logs, cost, and more.\n",
         "parameters": [
           {
