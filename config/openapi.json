@@ -91,6 +91,56 @@
           }
         ]
       }
+    },
+    "/trace/{trace_id}": {
+      "get": {
+        "operationId": "getTrace",
+        "tags": [
+          "Trace"
+        ],
+        "summary": "Retrieve a trace by ID",
+        "description": "Returns detailed information about a trace, including logs, cost, and more.\n",
+        "parameters": [
+          {
+            "name": "trace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "The UUID of the trace"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraceResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Trace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": [],
+            "ProjectIdAuth": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -2129,6 +2179,55 @@
           "name": "The model object",
           "example": "{\n  \"id\": \"VAR_model_id\",\n  \"object\": \"model\",\n  \"created\": 1686935002,\n  \"owned_by\": \"openai\"\n}\n"
         }
+      },
+      "TraceResponse": {
+        "type": "object",
+        "description": "Represents one span within a trace",
+        "properties": {
+          "trace_id": {
+            "type": "string",
+            "description": "The unique trace ID (UUID)."
+          },
+          "span_id": {
+            "type": "integer",
+            "description": "The unique span ID."
+          },
+          "parent_span_id": {
+            "type": "integer",
+            "description": "The span ID of the parent span."
+          },
+          "operation_name": {
+            "type": "string",
+            "description": "The name of the operation (e.g., 'model_call', 'api_invoke')."
+          },
+          "kind": {
+            "type": "string",
+            "description": "The kind of this span (e.g., 'INTERNAL')."
+          },
+          "start_time_us": {
+            "type": "integer",
+            "description": "Start time in microseconds."
+          },
+          "finish_time_us": {
+            "type": "integer",
+            "description": "Finish time in microseconds."
+          },
+          "attribute": {
+            "type": "object",
+            "description": "Key-value data or metadata about this span.",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "trace_id",
+          "span_id",
+          "parent_span_id",
+          "operation_name",
+          "kind",
+          "start_time_us",
+          "finish_time_us",
+          "attribute"
+        ]
       }
     }
   },
