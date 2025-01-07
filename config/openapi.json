@@ -131,6 +131,28 @@
           }
         ]
       }
+    },
+    "/pricing": {
+      "get": {
+        "operationId": "getPricing",
+        "tags": [
+          "Pricing"
+        ],
+        "summary": "Retrieve pricing information",
+        "description": "Returns the pricing details for LangDB services.",
+        "responses": {
+          "200": {
+            "description": "Successful retrieval of pricing information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelPricing"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2218,6 +2240,86 @@
           "finish_time_us",
           "attribute"
         ]
+      },
+      "ModelPricing": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "example": "gpt-3.5-turbo-0125"
+          },
+          "provider": {
+            "type": "string",
+            "example": "openai"
+          },
+          "price": {
+            "$ref": "#/components/schemas/PriceDetails"
+          },
+          "input_formats": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "text"
+            ]
+          },
+          "output_formats": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "text"
+            ]
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "tools"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "example": "completions"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/UsageLimits"
+          }
+        }
+      },
+      "PriceDetails": {
+        "type": "object",
+        "properties": {
+          "per_input_token": {
+            "type": "number",
+            "format": "float",
+            "example": 0.5
+          },
+          "per_output_token": {
+            "type": "number",
+            "format": "float",
+            "example": 1.5
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": null
+          }
+        }
+      },
+      "UsageLimits": {
+        "type": "object",
+        "properties": {
+          "max_context_size": {
+            "type": "integer",
+            "example": 16385
+          }
+        }
       }
     }
   },
