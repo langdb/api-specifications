@@ -148,12 +148,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TraceResponse'
-        '404':
-          description: Trace not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
       security:
         - BearerAuth: []
           ProjectIdAuth: []
