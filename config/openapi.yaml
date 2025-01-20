@@ -109,48 +109,45 @@ paths:
       security:
         - BearerAuth: []
           ProjectIdAuth: []
-  /models:
-    get:
-      operationId: listModels
-      tags:
-        - Models
-      summary: Lists available models.
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ListModelsResponse'
-      security:
-        - BearerAuth: []
-          ProjectIdAuth: []
-  /trace/{trace_id}:
-    get:
-      operationId: getTrace
-      tags:
-        - Trace
-      summary: Retrieve a trace by ID.
+  /embeddings:
+    post:
+      summary: Generate embeddings
       description: |
-        Returns detailed information about a trace, including logs, cost, and more.
-      parameters:
-        - name: trace_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: The UUID of the trace
+        Creates an embedding vector representing the input text or token arrays.
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmbeddingsRequest"
+            examples:
+              singleInputFloat:
+                summary: A single text input, returning float array
+                value:
+                  input: "The food was delicious and the waiter was kind."
+                  model: "text-embedding-ada-002"
+                  encoding_format: "float"
+                  dimensions: 1536
+              multipleInputsBase64:
+                summary: Multiple text strings, returning base64-encoded vectors
+                value:
+                  input:
+                    - "First text to embed"
+                    - "Second text to embed"
+                  model: "text-embedding-3-small"
+                  encoding_format: "base64"
       responses:
         '200':
-          description: OK
+          description: Successful response with embeddings
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TraceResponse'
+                $ref: "#/components/schemas/EmbeddingsResponse"
       security:
         - BearerAuth: []
           ProjectIdAuth: []
+                
   /pricing:
     get:
       operationId: getPricing
@@ -165,6 +162,50 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ModelPricing'
+  /models:
+    get:
+      operationId: listModels
+      tags:
+        - Models
+      summary: Lists available models.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListModelsResponse'
+                
+ 
+
+  # /trace/{trace_id}:
+  #   get:
+  #     operationId: getTrace
+  #     tags:
+  #       - Trace
+  #     summary: Retrieve a trace by ID.
+  #     description: |
+  #       Returns detailed information about a trace, including logs, cost, and more.
+  #     parameters:
+  #       - name: trace_id
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #           format: uuid
+  #         description: The UUID of the trace
+  #     responses:
+  #       '200':
+  #         description: OK
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/TraceResponse'
+  #     security:
+  #       - BearerAuth: []
+  #         ProjectIdAuth: []
+  
+
 components:
   securitySchemes:
     BearerAuth:
@@ -382,264 +423,39 @@ components:
       additionalProperties: true
     CreateChatCompletionRequest:
       type: object
+      required:
+        - model
+        - messages
       properties:
-        messages:
-          description: |
-            A list of messages comprising the conversation so far. Depending on the
-            [model](/docs/models) you use, different message types (modalities) are
-            supported, like [text](/docs/guides/text-generation),
-            [images](/docs/guides/vision), and [audio](/docs/guides/audio).
-          type: array
-          minItems: 1
-          items:
-            $ref: '#/components/schemas/ChatCompletionRequestMessage'
         model:
+          type: string
           description: ID of the model to use.
           example: gpt-4o
-        store:
-          type: boolean
-          default: false
-          nullable: true
-          description: |
-            Whether or not to store the output of this chat completion request.
-        metadata:
-          type: object
-          nullable: true
-          description: Developer-defined tags and values used for filtering completions.
-          additionalProperties:
-            type: string
-        frequency_penalty:
-          type: number
-          default: 0
-          minimum: -2
-          maximum: 2
-          nullable: true
-          description: |
-            Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.
-
-            [See more information about frequency and presence penalties.](/docs/guides/text-generation)
-        logit_bias:
-          type: object
-          x-oaiTypeLabel: map
-          default: null
-          nullable: true
-          additionalProperties:
-            type: integer
-          description: |
-            Modify the likelihood of specified tokens appearing in the completion.
-
-            Accepts a JSON object that maps tokens (specified by their token ID in the tokenizer) to an associated bias value from -100 to 100. Mathematically, the bias is added to the logits generated by the model prior to sampling. The exact effect will vary per model, but values between -1 and 1 should decrease or increase likelihood of selection; values like -100 or 100 should result in a ban or exclusive selection of the relevant token.
-        logprobs:
-          description: Whether to return log probabilities of the output tokens or not. If true, returns the log probabilities of each output token returned in the `content` of `message`.
-          type: boolean
-          default: false
-          nullable: true
-        top_logprobs:
-          description: An integer between 0 and 20 specifying the number of most likely tokens to return at each token position, each with an associated log probability. `logprobs` must be set to `true` if this parameter is used.
-          type: integer
-          minimum: 0
-          maximum: 20
-          nullable: true
-        max_tokens:
-          description: The maximum number of [tokens](/tokenizer) that can be generated in the chat completion.
-          type: integer
-          nullable: true
-          deprecated: true
-        max_completion_tokens:
-          description: |
-            An upper bound for the number of tokens that can be generated for a completion, including visible output tokens and [reasoning tokens](/docs/guides/reasoning).
-          type: integer
-          nullable: true
-        'n':
-          type: integer
-          minimum: 1
-          maximum: 128
-          default: 1
-          example: 1
-          nullable: true
-          description: How many chat completion choices to generate for each input message. Note that you will be charged based on the number of generated tokens across all of the choices. Keep `n` as `1` to minimize costs.
-        modalities:
-          $ref: '#/components/schemas/ChatCompletionModalities'
-        prediction:
-          nullable: true
-          x-oaiExpandable: true
-          description: |
-            Configuration for a [Predicted Output](/docs/guides/predicted-outputs),
-            which can greatly improve response times when large parts of the model
-            response are known ahead of time. This is most common when you are
-            regenerating a file with only minor changes to most of the content.
-          oneOf:
-            - $ref: '#/components/schemas/PredictionContent'
-        audio:
-          type: object
-          nullable: true
-          description: |
-            Parameters for audio output. Required when audio output is requested with
-            `modalities: ["audio"]`. [Learn more](/docs/guides/audio).
-          required:
-            - voice
-            - format
-          x-oaiExpandable: true
-          properties:
-            voice:
-              type: string
-              enum:
-                - alloy
-                - ash
-                - ballad
-                - coral
-                - echo
-                - sage
-                - shimmer
-                - verse
-              description: |
-                The voice the model uses to respond. Supported voices are `alloy`,
-                `ash`, `ballad`, `coral`, `echo`, `sage`, `shimmer`, and `verse`.
-            format:
-              type: string
-              enum:
-                - wav
-                - mp3
-                - flac
-                - opus
-                - pcm16
-              description: |
-                Specifies the output audio format. Must be one of `wav`, `mp3`, `flac`,
-                `opus`, or `pcm16`.
-        presence_penalty:
-          type: number
-          default: 0
-          minimum: -2
-          maximum: 2
-          nullable: true
-          description: |
-            Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.
-
-            [See more information about frequency and presence penalties.](/docs/guides/text-generation)
-        response_format:
-          description: |
-            An object specifying the format that the model must output. Compatible with [GPT-4o](/docs/models#gpt-4o), [GPT-4o mini](/docs/models#gpt-4o-mini), [GPT-4 Turbo](/docs/models#gpt-4-turbo-and-gpt-4) and all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
-
-            Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured Outputs which ensures the model will match your supplied JSON schema. Learn more in the [Structured Outputs guide](/docs/guides/structured-outputs).
-
-            Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the message the model generates is valid JSON.
-
-            **Important:** when using JSON mode, you **must** also instruct the model to produce JSON yourself via a system or user message. Without this, the model may generate an unending stream of whitespace until the generation reaches the token limit, resulting in a long-running and seemingly "stuck" request. Also note that the message content may be partially cut off if `finish_reason="length"`, which indicates the generation exceeded `max_tokens` or the conversation exceeded the max context length.
-        seed:
-          type: integer
-          minimum: -9223372036854776000
-          maximum: 9223372036854776000
-          nullable: true
-          description: |
-            This feature is in Beta.
-            If specified, our system will make a best effort to sample deterministically, such that repeated requests with the same `seed` and parameters should return the same result.
-            Determinism is not guaranteed, and you should refer to the `system_fingerprint` response parameter to monitor changes in the backend.
-          x-oaiMeta:
-            beta: true
-        service_tier:
-          description: |
-            Specifies the latency tier to use for processing the request. This parameter is relevant for customers subscribed to the scale tier service:
-              - If set to 'auto', and the Project is Scale tier enabled, the system will utilize scale tier credits until they are exhausted.
-              - If set to 'auto', and the Project is not Scale tier enabled, the request will be processed using the default service tier with a lower uptime SLA and no latency guarentee.
-              - If set to 'default', the request will be processed using the default service tier with a lower uptime SLA and no latency guarentee.
-              - When not set, the default behavior is 'auto'.
-
-              When this parameter is set, the response body will include the `service_tier` utilized.
-          type: string
-          enum:
-            - auto
-            - default
-          nullable: true
-          default: auto
-        stop:
-          description: |
-            Up to 4 sequences where the API will stop generating further tokens.
-          default: null
-          oneOf:
-            - type: string
-              nullable: true
-            - type: array
-              minItems: 1
-              maxItems: 4
-              items:
+        messages:
+          type: array
+          description: A list of messages in the conversation.
+          items:
+            type: object
+            properties:
+              role:
                 type: string
-        stream:
-          description: 'If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format) as they become available, with the stream terminated by a `data: [DONE]` message.'
-          type: boolean
-          nullable: true
-          default: false
-        stream_options:
-          $ref: '#/components/schemas/ChatCompletionStreamOptions'
+                enum:
+                  - system
+                  - user
+                  - assistant
+              content:
+                type: string
+          example:
+            - role: system
+              content: "You are a helpful assistant."
+            - role: user
+              content: "Write a haiku about recursion in programming."
         temperature:
           type: number
           minimum: 0
           maximum: 2
-          default: 1
-          example: 1
-          nullable: true
-          description: |
-            What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
-
-            We generally recommend altering this or `top_p` but not both.
-        top_p:
-          type: number
-          minimum: 0
-          maximum: 1
-          default: 1
-          example: 1
-          nullable: true
-          description: |
-            An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
-
-            We generally recommend altering this or `temperature` but not both.
-        tools:
-          type: array
-          description: |
-            A list of tools the model may call. Currently, only functions are supported as a tool. Use this to provide a list of functions the model may generate JSON inputs for. A max of 128 functions are supported.
-          items:
-            $ref: '#/components/schemas/ChatCompletionTool'
-        tool_choice:
-          $ref: '#/components/schemas/ChatCompletionToolChoiceOption'
-        parallel_tool_calls:
-          $ref: '#/components/schemas/ParallelToolCalls'
-        user:
-          type: string
-          example: user-1234
-          description: A unique identifier representing your end-user.
-        function_call:
-          deprecated: true
-          description: |
-            Deprecated in favor of `tool_choice`.
-
-            Controls which (if any) function is called by the model.
-            `none` means the model will not call a function and instead generates a message.
-            `auto` means the model can pick between generating a message or calling a function.
-            Specifying a particular function via `{"name": "my_function"}` forces the model to call that function.
-
-            `none` is the default when no functions are present. `auto` is the default if functions are present.
-          oneOf:
-            - type: string
-              description: |
-                `none` means the model will not call a function and instead generates a message. `auto` means the model can pick between generating a message or calling a function.
-              enum:
-                - none
-                - auto
-            - $ref: '#/components/schemas/ChatCompletionFunctionCallOption'
-          x-oaiExpandable: true
-        functions:
-          deprecated: true
-          description: |
-            Deprecated in favor of `tools`.
-
-            A list of functions the model may generate JSON inputs for.
-          type: array
-          minItems: 1
-          maxItems: 128
-          items:
-            $ref: '#/components/schemas/ChatCompletionFunctions'
-      required:
-        - model
-        - messages
+          description: Sampling temperature.
+          example: 0.8
     CreateChatCompletionResponse:
       type: object
       description: Represents a chat completion response returned by model, based on the provided input.
@@ -1839,6 +1655,112 @@ components:
         max_context_size:
           type: integer
           example: 16385
+    EmbeddingsRequest:
+      type: object
+      description: The request body for generating embeddings.
+      required:
+        - input
+        - model
+      properties:
+        input:
+          description: |
+            The text to embed, or an array of text strings/tokens.
+            Can be:
+              - A single string  
+              - An array of strings  
+              - An array of token arrays (advanced use)
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                oneOf:
+                  - type: string
+                  - type: array
+                    items:
+                      type: integer
+        model:
+          type: string
+          description: |
+            ID of the embeddings model to use (e.g. `text-embedding-ada-002`).
+        encoding_format:
+          type: string
+          enum: [float, base64]
+          default: float
+          description: |
+            Format to return the embeddings in:
+              - `float` -> array of floats
+              - `base64` -> base64-encoded data
+        dimensions:
+          type: integer
+          description: |
+            The number of dimensions for the returned embeddings (if supported by the model).
+            e.g. `1536` for `text-embedding-ada-002`
+        user:
+          type: string
+          description: |
+            A unique identifier for your end-user, useful for logging or analytics.
+      example:
+        input: "The food was delicious and the waiter was kind."
+        model: "text-embedding-ada-002"
+        encoding_format: "float"
+        dimensions: 1536
+        user: "user-1234"
+
+    EmbeddingsResponse:
+      type: object
+      description: The response containing one or more embeddings.
+      properties:
+        object:
+          type: string
+          enum: [list]
+          description: Typically "list".
+          example: "list"
+        data:
+          type: array
+          description: An array of embedding objects (one per input).
+          items:
+            type: object
+            properties:
+              object:
+                type: string
+                enum: [embedding]
+                description: Typically "embedding".
+                example: "embedding"
+              embedding:
+                type: array
+                description: The embedding vector.
+                items:
+                  type: number
+                example:
+                  - 0.0023064255
+                  - -0.009327292
+                  - -0.0028842222
+              index:
+                type: integer
+                description: The index of the input in the request.
+        model:
+          type: string
+          description: The model used to generate embeddings.
+        usage:
+          type: object
+          description: Optional usage data for token billing.
+          properties:
+            prompt_tokens:
+              type: integer
+              description: Number of tokens in the prompt.
+            total_tokens:
+              type: integer
+              description: Total tokens consumed (prompt + overhead).
+      example:
+        object: "list"
+        data:
+          - object: "embedding"
+            embedding: [0.0023064255, -0.009327292, -0.0028842222]
+            index: 0
+        model: "text-embedding-ada-002"
+        usage:
+          prompt_tokens: 8
+          total_tokens: 8
 
 tags:
   - name: Chat
