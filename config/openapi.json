@@ -67,6 +67,10 @@
     },
     "/embeddings": {
       "post": {
+        "operationId": "generateEmbeddings",
+        "tags": [
+          "Embeddings"
+        ],
         "summary": "Generate embeddings",
         "description": "Creates an embedding vector representing the input text or token arrays.\n",
         "requestBody": {
