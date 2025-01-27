@@ -113,7 +113,7 @@ paths:
     post:
       operationId: generateEmbeddings
       tags:
-        - Embeddings
+        - Chat
       summary: Generate embeddings
       description: |
         Creates an embedding vector representing the input text or token arrays.
@@ -151,6 +151,157 @@ paths:
         - BearerAuth: []
           ProjectIdAuth: []
                 
+  /analytics:
+    post:
+      tags:
+        - Analytics
+      summary: Fetch analytics data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                start_time_us:
+                  type: integer
+                  format: int64
+                  description: "Start time in microseconds."
+                end_time_us:
+                  type: integer
+                  format: int64
+                  description: "End time in microseconds."
+              example: |
+                {
+                  "start_time_us": 1693062345678,
+                  "end_time_us": 1693082345678,
+                }
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The analytics result
+      security:
+        - BearerAuth: []
+          ProjectIdAuth: []
+
+  /analytics/summary:
+    post:
+      tags:
+        - Analytics
+      summary: Fetch analytics summary
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                start_time_us:
+                  type: integer
+                  format: int64
+                end_time_us:
+                  type: integer
+                  format: int64
+                groupBy:
+                  type: array
+                  items:
+                    type: string
+              example: |
+                {
+                  "start_time_us": 1693062345678,
+                  "end_time_us": 1693082345678,
+                  "groupBy": ["provider"]
+                }
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The analytics summary result
+      security:
+        - BearerAuth: []
+          ProjectIdAuth: []
+
+  /usage/total:
+    post:
+      tags:
+        - Analytics
+      summary: Get total usage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                start_time_us:
+                  type: integer
+                  format: int64
+                end_time_us:
+                  type: integer
+                  format: int64
+              example: |
+                {
+                  "start_time_us": 1693062345678,
+                  "end_time_us": 1693082345678
+                }
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Total usage data
+      security:
+        - BearerAuth: []
+          ProjectIdAuth: []
+
+  /usage/models:
+    post:
+      tags:
+        - Analytics
+      summary: Get model usage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                start_time_us:
+                  type: integer
+                  format: int64
+                end_time_us:
+                  type: integer
+                  format: int64
+                min_unit:
+                  type: string
+                  enum: [hour, day, month]
+                  description: "The granularity of the returned usage data."
+              example: |
+                {
+                  "start_time_us": 1693062345678,
+                  "end_time_us": 1693082345678,
+                  "min_unit": "hour"
+                }
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Model usage data
+      security:
+        - BearerAuth: []
+          ProjectIdAuth: []
   /pricing:
     get:
       operationId: getPricing
