@@ -11,13 +11,13 @@
     }
   ],
   "paths": {
-    "/chat/completions": {
+    "/v1/chat/completions": {
       "post": {
         "operationId": "createChatCompletion",
         "tags": [
-          "Chat"
+          "Completions"
         ],
-        "summary": "Creates a model response.",
+        "summary": "Create chat completion",
         "requestBody": {
           "required": true,
           "content": {
@@ -65,13 +65,13 @@
         ]
       }
     },
-    "/embeddings": {
+    "/v1/embeddings": {
       "post": {
         "operationId": "generateEmbeddings",
         "tags": [
-          "Chat"
+          "Completions"
         ],
-        "summary": "Generate embeddings",
+        "summary": "Create embeddings",
         "description": "Creates an embedding vector representing the input text or token arrays.\n",
         "requestBody": {
           "required": true,
@@ -125,6 +125,124 @@
         ]
       }
     },
+    "/threads": {
+      "post": {
+        "operationId": "listThreads",
+        "tags": [
+          "Threads"
+        ],
+        "summary": "Retrieve a list of threads",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThreadsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A list of threads with pagination info",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadsResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": [],
+            "ProjectIdAuth": []
+          }
+        ]
+      }
+    },
+    "/threads/{thread_id}/messages": {
+      "get": {
+        "operationId": "listThreadMessages",
+        "tags": [
+          "Threads"
+        ],
+        "summary": "Retrieve messages for a specific thread",
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "The ID of the thread to retrieve messages from"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of messages for the given thread",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ThreadMessage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": [],
+            "ProjectIdAuth": []
+          }
+        ]
+      }
+    },
+    "/threads/{thread_id}/cost": {
+      "get": {
+        "operationId": "getThreadCost",
+        "tags": [
+          "Threads"
+        ],
+        "summary": "Retrieve the total cost for a specific thread",
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "The ID of the thread for which to retrieve cost information"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The total cost and token usage for the specified thread",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadCost"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": [],
+            "ProjectIdAuth": []
+          }
+        ]
+      }
+    },
     "/analytics": {
       "post": {
         "tags": [
@@ -149,7 +267,7 @@
                     "description": "End time in microseconds."
                   }
                 },
-                "example": "{\n  \"start_time_us\": 1693062345678,\n  \"end_time_us\": 1693082345678,\n}\n"
+                "example": "{\n  \"start_time_us\": 1693062345678,\n  \"end_time_us\": 1693082345678\n}\n"
               }
             }
           }
@@ -362,7 +480,7 @@
         "tags": [
           "Models"
         ],
-        "summary": "Lists available models.",
+        "summary": "List models",
         "responses": {
           "200": {
             "description": "OK",
@@ -2114,44 +2232,6 @@
           "total_tokens"
         ]
       },
-      "PredictionContent": {
-        "type": "object",
-        "title": "Static Content",
-        "description": "Static predicted output content, such as the content of a text file that is being regenerated.\n",
-        "required": [
-          "type",
-          "content"
-        ],
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "content"
-            ],
-            "description": "The type of the predicted content you want to provide. This type is\ncurrently always `content`.\n"
-          },
-          "content": {
-            "x-oaiExpandable": true,
-            "description": "The content that should be matched when generating a model response. If generated tokens would match this content, the entire model response can be returned much more quickly.\n",
-            "oneOf": [
-              {
-                "type": "string",
-                "title": "Text content",
-                "description": "The content used for a Predicted Output. This is often the\ntext of a file you are regenerating with minor changes.\n"
-              },
-              {
-                "type": "array",
-                "description": "An array of content parts with a defined type. Supported options differ based on the model being used to generate the response. Can contain text inputs.",
-                "title": "Array of content parts",
-                "items": {
-                  "$ref": "#/components/schemas/ChatCompletionRequestMessageContentPartText"
-                },
-                "minItems": 1
-              }
-            ]
-          }
-        }
-      },
       "ListModelsResponse": {
         "type": "object",
         "properties": {
@@ -2482,6 +2562,201 @@
             "total_tokens": 8
           }
         }
+      },
+      "ThreadsRequest": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 10
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 100
+          }
+        },
+        "required": [
+          "limit",
+          "offset"
+        ]
+      },
+      "ThreadsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "description": "An array of thread objects",
+            "items": {
+              "$ref": "#/components/schemas/Thread"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/ThreadsPagination"
+          }
+        },
+        "required": [
+          "data",
+          "pagination"
+        ]
+      },
+      "Thread": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "model_name": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number",
+            "nullable": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "model_name",
+          "project_id",
+          "user_id"
+        ]
+      },
+      "ThreadsPagination": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "example": 10
+          },
+          "offset": {
+            "type": "integer",
+            "example": 100
+          },
+          "total": {
+            "type": "integer",
+            "example": 10
+          }
+        },
+        "required": [
+          "limit",
+          "offset",
+          "total"
+        ]
+      },
+      "ThreadMessage": {
+        "type": "object",
+        "properties": {
+          "model_name": {
+            "type": "string",
+            "example": "gpt-4o-mini"
+          },
+          "thread_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user_id": {
+            "type": "string",
+            "example": "langdb"
+          },
+          "content_type": {
+            "type": "string",
+            "example": "Text"
+          },
+          "content": {
+            "type": "string",
+            "description": "The raw text or structured content of the message"
+          },
+          "content_array": {
+            "type": "array",
+            "description": "In some cases, message content may be split into multiple parts",
+            "items": {
+              "type": "string"
+            }
+          },
+          "type": {
+            "type": "string",
+            "description": "The role or type of message (e.g., system, human, ai)",
+            "example": "system"
+          },
+          "tool_call_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "If relevant, the ID of the tool call"
+          },
+          "tool_calls": {
+            "type": "string",
+            "nullable": true,
+            "description": "Any tool calls (if applicable) related to this message"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-01-29 10:25:00.736000"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The unique identifier for the message"
+          }
+        },
+        "required": [
+          "model_name",
+          "thread_id",
+          "user_id",
+          "content_type",
+          "content",
+          "type",
+          "created_at",
+          "id"
+        ]
+      },
+      "ThreadCost": {
+        "type": "object",
+        "properties": {
+          "total_cost": {
+            "type": "number",
+            "format": "float",
+            "description": "The total cost of the thread",
+            "example": 0.022226999999999997
+          },
+          "total_output_tokens": {
+            "type": "integer",
+            "description": "The number of output tokens used",
+            "example": 171
+          },
+          "total_input_tokens": {
+            "type": "integer",
+            "description": "The number of input tokens used",
+            "example": 6725
+          }
+        },
+        "required": [
+          "total_cost",
+          "total_output_tokens",
+          "total_input_tokens"
+        ]
       }
     }
   },
