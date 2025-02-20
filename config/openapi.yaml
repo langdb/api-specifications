@@ -260,8 +260,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                description: The analytics result
+                $ref: '#/components/schemas/AnalyticsResponse'
       security:
         - BearerAuth: []
           ProjectIdAuth: []
@@ -300,8 +299,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                description: The analytics summary result
+                $ref: '#/components/schemas/AnalyticsSummaryResponse'
       security:
         - BearerAuth: []
           ProjectIdAuth: []
@@ -331,12 +329,11 @@ paths:
                 }
       responses:
         '200':
-          description: Successful response
+          description: OK
           content:
             application/json:
               schema:
-                type: object
-                description: Total usage data
+                $ref: '#/components/schemas/TotalUsageResponse'
       security:
         - BearerAuth: []
           ProjectIdAuth: []
@@ -345,7 +342,7 @@ paths:
     post:
       tags:
         - Analytics
-      summary: Get model usage
+      summary: Get usage by model
       requestBody:
         required: true
         content:
@@ -375,8 +372,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                description: Model usage data
+                $ref: '#/components/schemas/GranularUsageResponse'
       security:
         - BearerAuth: []
           ProjectIdAuth: []
@@ -406,38 +402,35 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListModelsResponse'
-                
- 
-
-  # /trace/{trace_id}:
-  #   get:
-  #     operationId: getTrace
-  #     tags:
-  #       - Trace
-  #     summary: Retrieve a trace by ID.
-  #     description: |
-  #       Returns detailed information about a trace, including logs, cost, and more.
-  #     parameters:
-  #       - name: trace_id
-  #         in: path
-  #         required: true
-  #         schema:
-  #           type: string
-  #           format: uuid
-  #         description: The UUID of the trace
-  #     responses:
-  #       '200':
-  #         description: OK
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/TraceResponse'
-  #     security:
-  #       - BearerAuth: []
-  #         ProjectIdAuth: []
+                type: object
+                properties:
+                 object:
+                   type: string
+                   description: "Type of the response, e.g. 'list'."
+                   example: list
+                 data:
+                   type: array
+                   description: "Array of model objects."
+                   items:
+                     type: object
+                     properties:
+                       id:
+                         type: string
+                         description: "Unique identifier for the model."
+                         example: o1-mini
+                       object:
+                         type: string
+                         description: "Object type, typically 'model'."
+                         example: model
+                       created:
+                         type: integer
+                         description: "Unix timestamp when the model was created."
+                         example: 1686935002
+                       owned_by:
+                         type: string
+                         description: "Owner of the model."
+                         example: openai
   
-
 components:
   securitySchemes:
     BearerAuth:
@@ -448,77 +441,6 @@ components:
       in: header
       name: X-Project-Id
   schemas:
-
-    VirtualTableResponse:
-      type: object
-      properties:
-        resources:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/Resource'
-          description: Mapping of resource names to their definitions.
-        columns:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/TableField'
-          description: Mapping of resource names to their column schemas.
-        configs:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/ConfigSchema'
-          description: Mapping of resource names to their configuration schemas.
-      required:
-        - resources
-        - columns
-        - configs
-    Resource:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Unique identifier for the resource.
-        type:
-          type: string
-          description: Type of the resource (e.g., table, view).
-        description:
-          type: string
-          description: Human-readable description of the resource.
-        created_at:
-          type: string
-          format: date-time
-          description: Timestamp when the resource was created.
-        updated_at:
-          type: string
-          format: date-time
-          description: Timestamp when the resource was last updated.
-      required:
-        - name
-        - type
-        - description
-        - created_at
-        - updated_at
-    TableField:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Name of the field/column
-        type:
-          type: string
-          description: Data type of the field
-        description:
-          type: string
-          description: Description of the field
-        nullable:
-          type: boolean
-          description: Indicates if the field can be null
-      required:
-        - name
-        - type
-    ConfigSchema:
-      type: object
-      description: Configuration details for the resource.
-      additionalProperties: true
     CreateChatCompletionRequest:
       type: object
       required:
@@ -1801,6 +1723,141 @@ components:
         - limit
         - offset
 
+    ModelUsage:
+      type: object
+      required:
+        - provider
+        - model_name
+        - total_input_tokens
+        - total_output_tokens
+        - total_cost
+        - cost_per_input_token
+        - cost_per_output_token
+      properties:
+        provider:
+          type: string
+          description: The provider of the model (e.g. openai, gemini, etc)
+        model_name:
+          type: string
+          description: The name of the model
+        total_input_tokens:
+          type: integer
+          description: Total number of input tokens used
+        total_output_tokens:
+          type: integer
+          description: Total number of output tokens generated
+        total_cost:
+          type: number
+          format: double
+          description: Total cost in USD
+        cost_per_input_token:
+          type: number
+          format: double
+          description: Cost per input token in USD
+        cost_per_output_token:
+          type: number
+          format: double
+          description: Cost per output token in USD
+
+    TotalUsageSummary:
+      type: object
+      required:
+        - total_input_tokens
+        - total_output_tokens
+        - total_cost
+      properties:
+        total_input_tokens:
+          type: integer
+          description: Total input tokens across all models
+        total_output_tokens:
+          type: integer
+          description: Total output tokens across all models
+        total_cost:
+          type: number
+          format: double
+          description: Total cost across all models in USD
+
+    TotalUsageResponse:
+      type: object
+      required:
+        - models
+        - total
+        - period_start
+        - period_end
+      properties:
+        models:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModelUsage'
+          description: Usage statistics for each model
+        total:
+          $ref: '#/components/schemas/TotalUsageSummary'
+          description: Aggregated usage statistics across all models
+        period_start:
+          type: integer
+          format: int64
+          description: Start of the usage period in microseconds since epoch
+        period_end:
+          type: integer
+          format: int64
+          description: End of the usage period in microseconds since epoch
+
+    GranularModelUsage:
+      type: object
+      required:
+        - time
+        - provider
+        - model_name
+        - total_input_tokens
+        - total_output_tokens
+        - total_cost
+      properties:
+        time:
+          type: string
+          description: >
+            The timestamp corresponding to the usage data. The format depends on the requested granularity:
+            - Hourly: "YYYY-MM-DD HH:mm:ss"
+            - Daily: "YYYY-MM-DD"
+            - Monthly: "YYYY-MM"
+        provider:
+          type: string
+          description: "The provider of the model (e.g. openai, gemini, etc.)"
+        model_name:
+          type: string
+          description: "The name of the model"
+        total_input_tokens:
+          type: integer
+          description: "Total number of input tokens used"
+        total_output_tokens:
+          type: integer
+          description: "Total number of output tokens generated"
+        total_cost:
+          type: number
+          format: double
+          description: "Total cost in USD"
+
+
+    GranularUsageResponse:
+      type: object
+      required:
+        - models
+        - period_start
+        - period_end
+      properties:
+        models:
+          type: array
+          description: "Usage statistics for each model at the specified granularity (hourly, daily, or monthly)"
+          items:
+            $ref: '#/components/schemas/GranularModelUsage'
+        period_start:
+          type: integer
+          format: int64
+          description: "Start of the usage period in microseconds since epoch"
+        period_end:
+          type: integer
+          format: int64
+          description: "End of the usage period in microseconds since epoch"
+
     ThreadsResponse:
       type: object
       properties:
@@ -1935,6 +1992,354 @@ components:
         - total_cost
         - total_output_tokens
         - total_input_tokens
+    AnalyticsResponse:
+      type: object
+      required:
+        - timeseries
+        - start_time_us
+        - end_time_us
+      properties:
+        timeseries:
+          type: array
+          description: "An array of analytics timeseries records."
+          items:
+            type: object
+            required:
+              - hour
+              - total_cost
+              - total_requests
+              - avg_duration
+              - duration
+              - duration_p99
+              - duration_p95
+              - duration_p90
+              - duration_p50
+              - total_duration
+              - total_input_tokens
+              - total_output_tokens
+              - error_rate
+              - error_request_count
+              - avg_ttft
+              - ttft
+              - ttft_p99
+              - ttft_p95
+              - ttft_p90
+              - ttft_p50
+              - tps
+              - tps_p99
+              - tps_p95
+              - tps_p90
+              - tps_p50
+              - tpot
+              - tpot_p99
+              - tpot_p95
+              - tpot_p90
+              - tpot_p50
+              - tag_tuple
+            properties:
+              hour:
+                type: string
+                description: "The timestamp for the record (e.g. 'YYYY-MM-DD HH:mm:ss')."
+              total_cost:
+                type: number
+                format: double
+                description: "Total cost incurred during this period."
+              total_requests:
+                type: integer
+                description: "Total number of requests."
+              avg_duration:
+                type: number
+                format: double
+                description: "Average duration (in milliseconds) of requests."
+              duration:
+                type: number
+                format: double
+                description: "Duration (in milliseconds) of requests."
+              duration_p99:
+                type: number
+                format: double
+                description: "99th percentile of request durations."
+              duration_p95:
+                type: number
+                format: double
+                description: "95th percentile of request durations."
+              duration_p90:
+                type: number
+                format: double
+                description: "90th percentile of request durations."
+              duration_p50:
+                type: number
+                format: double
+                description: "50th percentile of request durations."
+              total_duration:
+                type: number
+                format: double
+                description: "Total duration (in milliseconds) of all requests."
+              total_input_tokens:
+                type: integer
+                description: "Total number of input tokens used."
+              total_output_tokens:
+                type: integer
+                description: "Total number of output tokens generated."
+              error_rate:
+                type: number
+                format: double
+                description: "Error rate (as a percentage) over the period."
+              error_request_count:
+                type: integer
+                description: "Number of error requests."
+              avg_ttft:
+                type: number
+                format: double
+                description: "Average time to first byte (TTFT) in milliseconds."
+              ttft:
+                type: number
+                format: double
+                description: "Time to first byte (TTFT) in milliseconds."
+              ttft_p99:
+                type: number
+                format: double
+                description: "99th percentile of TTFT."
+              ttft_p95:
+                type: number
+                format: double
+                description: "95th percentile of TTFT."
+              ttft_p90:
+                type: number
+                format: double
+                description: "90th percentile of TTFT."
+              ttft_p50:
+                type: number
+                format: double
+                description: "50th percentile of TTFT."
+              tps:
+                type: number
+                format: double
+                description: "Transactions per second."
+              tps_p99:
+                type: number
+                format: double
+                description: "99th percentile TPS."
+              tps_p95:
+                type: number
+                format: double
+                description: "95th percentile TPS."
+              tps_p90:
+                type: number
+                format: double
+                description: "90th percentile TPS."
+              tps_p50:
+                type: number
+                format: double
+                description: "50th percentile TPS."
+              tpot:
+                type: number
+                format: double
+                description: "Average transactions per output token (Tpot)."
+              tpot_p99:
+                type: number
+                format: double
+                description: "99th percentile of Tpot."
+              tpot_p95:
+                type: number
+                format: double
+                description: "95th percentile of Tpot."
+              tpot_p90:
+                type: number
+                format: double
+                description: "90th percentile of Tpot."
+              tpot_p50:
+                type: number
+                format: double
+                description: "50th percentile of Tpot."
+              tag_tuple:
+                type: array
+                items:
+                  type: string
+                description: "A tuple of tags associated with the record."
+        start_time_us:
+          type: integer
+          format: int64
+          description: "Start time in microseconds since epoch."
+        end_time_us:
+          type: integer
+          format: int64
+          description: "End time in microseconds since epoch."
+
+    AnalyticsSummaryItem:
+      type: object
+      required:
+        - tag_tuple
+        - total_cost
+        - total_requests
+        - total_duration
+        - avg_duration
+        - duration
+        - duration_p99
+        - duration_p95
+        - duration_p90
+        - duration_p50
+        - total_input_tokens
+        - total_output_tokens
+        - avg_ttft
+        - ttft
+        - ttft_p99
+        - ttft_p95
+        - ttft_p90
+        - ttft_p50
+        - tps
+        - tps_p99
+        - tps_p95
+        - tps_p90
+        - tps_p50
+        - tpot
+        - tpot_p99
+        - tpot_p95
+        - tpot_p90
+        - tpot_p50
+        - error_rate
+        - error_request_count
+      properties:
+        tag_tuple:
+          type: array
+          items:
+            type: string
+          description: >
+            The grouping key(s) used for this summary. In this example the key is returned as tag_tuple.
+            (Depending on the groupBy parameter, this field might contain provider names or model names.)
+        total_cost:
+          type: number
+          format: double
+          description: "Aggregated total cost in USD for the group."
+        total_requests:
+          type: integer
+          description: "Aggregated total number of requests for the group."
+        total_duration:
+          type: number
+          format: double
+          description: "Aggregated total duration (in milliseconds) for the group."
+        avg_duration:
+          type: number
+          format: double
+          description: "Average duration (in milliseconds) of requests for the group."
+        duration:
+          type: number
+          format: double
+          description: "Representative duration (in milliseconds) for the group."
+        duration_p99:
+          type: number
+          format: double
+          description: "99th percentile of request durations."
+        duration_p95:
+          type: number
+          format: double
+          description: "95th percentile of request durations."
+        duration_p90:
+          type: number
+          format: double
+          description: "90th percentile of request durations."
+        duration_p50:
+          type: number
+          format: double
+          description: "50th percentile of request durations."
+        total_input_tokens:
+          type: integer
+          description: "Aggregated total input tokens used in the group."
+        total_output_tokens:
+          type: integer
+          description: "Aggregated total output tokens generated in the group."
+        avg_ttft:
+          type: number
+          format: double
+          description: "Average time-to-first-byte (TTFT) in milliseconds for the group."
+        ttft:
+          type: number
+          format: double
+          description: "Representative TTFT value in milliseconds for the group."
+        ttft_p99:
+          type: number
+          format: double
+          description: "99th percentile of TTFT."
+        ttft_p95:
+          type: number
+          format: double
+          description: "95th percentile of TTFT."
+        ttft_p90:
+          type: number
+          format: double
+          description: "90th percentile of TTFT."
+        ttft_p50:
+          type: number
+          format: double
+          description: "50th percentile of TTFT."
+        tps:
+          type: number
+          format: double
+          description: "Aggregated transactions per second (TPS) for the group."
+        tps_p99:
+          type: number
+          format: double
+          description: "99th percentile of TPS."
+        tps_p95:
+          type: number
+          format: double
+          description: "95th percentile of TPS."
+        tps_p90:
+          type: number
+          format: double
+          description: "90th percentile of TPS."
+        tps_p50:
+          type: number
+          format: double
+          description: "50th percentile of TPS."
+        tpot:
+          type: number
+          format: double
+          description: "Aggregated average transactions per output token (TPOT) for the group."
+        tpot_p99:
+          type: number
+          format: double
+          description: "99th percentile of TPOT."
+        tpot_p95:
+          type: number
+          format: double
+          description: "95th percentile of TPOT."
+        tpot_p90:
+          type: number
+          format: double
+          description: "90th percentile of TPOT."
+        tpot_p50:
+          type: number
+          format: double
+          description: "50th percentile of TPOT."
+        error_rate:
+          type: number
+          format: double
+          description: "Error rate (as a percentage) for the group."
+        error_request_count:
+          type: integer
+          description: "Total number of error requests in the group."
+
+    AnalyticsSummaryResponse:
+      type: object
+      required:
+        - summary
+        - start_time_us
+        - end_time_us
+      properties:
+        summary:
+          type: array
+          description: "An array of aggregated analytics summary records."
+          items:
+            $ref: '#/components/schemas/AnalyticsSummaryItem'
+        start_time_us:
+          type: integer
+          format: int64
+          description: "Start time in microseconds since epoch."
+        end_time_us:
+          type: integer
+          format: int64
+          description: "End time in microseconds since epoch."
 tags:
   - name: Chat
     description: API for chat completions

@@ -1,0 +1,405 @@
+openapi: 3.0.1
+info:
+  title: AI Gateway API
+  version: '1.0'
+servers:
+  - url: https://api.us-east-1.langdb.ai
+    description: LangDB API Server
+paths:
+  /v1/chat/completions:
+    post:
+      operationId: createChatCompletion
+      tags:
+        - Completions
+      summary: Create chat completion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateChatCompletionRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateChatCompletionResponse'
+      x-oaiMeta:
+        name: Create chat completion
+        group: chat
+        returns: |
+          Returns a [chat completion](/docs/api-reference/chat/object) object, or a streamed sequence of [chat completion chunk](/docs/api-reference/chat/streaming) objects if the request is streamed.
+        path: create
+        examples:
+          - title: Default
+            request:
+              curl: |
+                curl https://api.staging.langdb.ai/v1/chat/completions \
+                  -H "Content-Type: application/json" \
+                  -H "Authorization: Bearer $LANGDB_API_KEY" \
+                  -d '{
+                    "model": "VAR_model_id",
+                    "messages": [
+                      {
+                        "role": "system",
+                        "content": "You are a helpful assistant."
+                      },
+                      {
+                        "role": "user",
+                        "content": "Hello!"
+                      }
+                    ]
+                  }'
+              python: |
+                from openai import OpenAI
+                client = OpenAI()
+
+                completion = client.chat.completions.create(
+                  model="VAR_model_id",
+                  messages=[
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": "Hello!"}
+                  ]
+                )
+
+                print(completion.choices[0].message)
+              node.js: |-
+                import OpenAI from "openai";
+
+                const openai = new OpenAI();
+
+                async function main() {
+                  const completion = await openai.chat.completions.create({
+                    messages: [{ role: "system", content: "You are a helpful assistant." }],
+                    model: "VAR_model_id",
+                  });
+
+                  console.log(completion.choices[0]);
+                }
+
+                main();
+            response: |
+              {
+                "id": "chatcmpl-123",
+                "object": "chat.completion",
+                "created": 1677652288,
+                "model": "gpt-4o-mini",
+                "system_fingerprint": "fp_44709d6fcb",
+                "choices": [{
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "content": "\n\nHello there, how may I assist you today?",
+                  },
+                  "logprobs": null,
+                  "finish_reason": "stop"
+                }],
+                "usage": {
+                  "prompt_tokens": 9,
+                  "completion_tokens": 12,
+                  "total_tokens": 21,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "accepted_prediction_tokens": 0,
+                    "rejected_prediction_tokens": 0
+                  }
+                }
+              }
+      security:
+        - BearerAuth: []
+          ProjectIdAuth: []
+  /v1/embeddings:
+    post:
+      operationId: generateEmbeddings
+      tags:
+        - Completions
+      summary: Create embeddings
+      description: |
+        Creates an embedding vector representing the input text or token arrays.
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmbeddingsRequest"
+            examples:
+              singleInputFloat:
+                summary: A single text input, returning float array
+                value:
+                  input: "The food was delicious and the waiter was kind."
+                  model: "text-embedding-ada-002"
+                  encoding_format: "float"
+                  dimensions: 1536
+              multipleInputsBase64:
+                summary: Multiple text strings, returning base64-encoded vectors
+                value:
+                  input:
+                    - "First text to embed"
+                    - "Second text to embed"
+                  model: "text-embedding-3-small"
+                  encoding_format: "base64"
+      responses:
+        '200':
+          description: Successful response with embeddings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmbeddingsResponse"
+      security:
+        - BearerAuth: []
+          ProjectIdAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+    ProjectIdAuth:
+      type: apiKey
+      in: header
+      name: X-Project-Id
+  schemas:
+    CreateChatCompletionRequest:
+      type: object
+      required:
+        - model
+        - messages
+      properties:
+        model:
+          type: string
+          description: ID of the model to use.
+          example: gpt-4o
+        messages:
+          type: array
+          description: A list of messages in the conversation.
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                enum:
+                  - system
+                  - user
+                  - assistant
+              content:
+                type: string
+          example:
+            - role: system
+              content: "You are a helpful assistant."
+            - role: user
+              content: "Write a haiku about recursion in programming."
+        temperature:
+          type: number
+          minimum: 0
+          maximum: 2
+          description: Sampling temperature.
+          example: 0.8
+
+    CreateChatCompletionResponse:
+      type: object
+      description: Represents a chat completion response returned by model, based on the provided input.
+      required:
+        - choices
+        - created
+        - id
+        - model
+        - object
+      properties:
+        id:
+          type: string
+          description: A unique identifier for the chat completion.
+        choices:
+          type: array
+          description: A list of chat completion choices. Can be more than one if `n` is greater than 1.
+          items:
+            type: object
+            required:
+              - finish_reason
+              - index
+              - message
+              - logprobs
+            properties:
+              finish_reason:
+                type: string
+                description: |
+                  The reason the model stopped generating tokens. This will be `stop` if the model hit a natural stop point or a provided stop sequence,
+                  `length` if the maximum number of tokens specified in the request was reached,
+                  `content_filter` if content was omitted due to a flag from our content filters,
+                  `tool_calls` if the model called a tool, or `function_call` (deprecated) if the model called a function.
+                enum:
+                  - stop
+                  - length
+                  - tool_calls
+                  - content_filter
+                  - function_call
+              index:
+                type: integer
+                description: The index of the choice in the list of choices.
+              message:
+                type: object
+                properties:
+                  role:
+                    type: string
+                    enum:
+                      - assistant
+                  content:
+                    type: string
+                required:
+                  - role
+                  - content
+              logprobs:
+                description: Log probability information for the choice.
+                type: object
+                nullable: true
+                properties:
+                  content:
+                    description: A list of message content tokens with log probability information.
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        token:
+                          type: string
+                        logprob:
+                          type: number
+                    nullable: true
+                  refusal:
+                    description: A list of message refusal tokens with log probability information.
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        token:
+                          type: string
+                        logprob:
+                          type: number
+                    nullable: true
+                required:
+                  - content
+                  - refusal
+        created:
+          type: integer
+          description: The Unix timestamp (in seconds) of when the chat completion was created.
+        model:
+          type: string
+          description: The model used for the chat completion.
+        service_tier:
+          description: The service tier used for processing the request. This field is only included if the `service_tier` parameter is specified in the request.
+          type: string
+          enum:
+            - scale
+            - default
+          example: scale
+          nullable: true
+        system_fingerprint:
+          type: string
+          description: |
+            This fingerprint represents the backend configuration that the model runs with.
+
+            Can be used in conjunction with the `seed` request parameter to understand when backend changes have been made that might impact determinism.
+        object:
+          type: string
+          description: The object type, which is always `chat.completion`.
+          enum:
+            - chat.completion
+        usage:
+          type: object
+          description: Usage statistics for the completion request.
+          properties:
+            prompt_tokens:
+              type: integer
+              description: Number of tokens in the prompt.
+            completion_tokens:
+              type: integer
+              description: Number of tokens in the completion.
+            total_tokens:
+              type: integer
+              description: Total number of tokens used.
+            prompt_tokens_details:
+              type: object
+              properties:
+                cached_tokens:
+                  type: integer
+            completion_tokens_details:
+              type: object
+              properties:
+                reasoning_tokens:
+                  type: integer
+                accepted_prediction_tokens:
+                  type: integer
+                rejected_prediction_tokens:
+                  type: integer
+
+    EmbeddingsRequest:
+      type: object
+      required:
+        - model
+        - input
+      properties:
+        model:
+          type: string
+          description: ID of the model to use for generating embeddings.
+          example: text-embedding-ada-002
+        input:
+          oneOf:
+            - type: string
+              description: The text to embed.
+            - type: array
+              items:
+                type: string
+              description: Array of text strings to embed.
+        encoding_format:
+          type: string
+          enum: [float, base64]
+          default: float
+          description: The format to return the embeddings in.
+        dimensions:
+          type: integer
+          description: The number of dimensions the resulting embeddings should have.
+          minimum: 1
+          maximum: 1536
+          example: 1536
+
+    EmbeddingsResponse:
+      type: object
+      required:
+        - data
+        - model
+        - usage
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            required:
+              - embedding
+              - index
+            properties:
+              embedding:
+                oneOf:
+                  - type: array
+                    items:
+                      type: number
+                    description: The embedding vector, returned when encoding_format=float.
+                  - type: string
+                    description: The base64-encoded embedding vector, returned when encoding_format=base64.
+              index:
+                type: integer
+                description: The index of this embedding in the input array.
+        model:
+          type: string
+          description: The model used for generating the embeddings.
+        usage:
+          type: object
+          required:
+            - prompt_tokens
+            - total_tokens
+          properties:
+            prompt_tokens:
+              type: integer
+              description: The number of tokens in the prompt.
+            total_tokens:
+              type: integer
+              description: The total number of tokens used (same as prompt_tokens since there is no completion).

@@ -1,0 +1,121 @@
+openapi: 3.0.1
+info:
+  title: AI Gateway API
+  version: '1.0'
+servers:
+  - url: https://api.us-east-1.langdb.ai
+    description: LangDB API Server
+
+paths:
+  /pricing:
+    get:
+      operationId: getPricing
+      tags:
+        - Pricing
+      summary: Retrieve pricing information
+      description: Returns the pricing details for LangDB services.
+      responses:
+        '200':
+          description: Successful retrieval of pricing information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelPricing'
+  /models:
+    get:
+      operationId: listModels
+      tags:
+        - Models
+      summary: List models
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                 object:
+                   type: string
+                   description: "Type of the response, e.g. 'list'."
+                   example: list
+                 data:
+                   type: array
+                   description: "Array of model objects."
+                   items:
+                     type: object
+                     properties:
+                       id:
+                         type: string
+                         description: "Unique identifier for the model."
+                         example: o1-mini
+                       object:
+                         type: string
+                         description: "Object type, typically 'model'."
+                         example: model
+                       created:
+                         type: integer
+                         description: "Unix timestamp when the model was created."
+                         example: 1686935002
+                       owned_by:
+                         type: string
+                         description: "Owner of the model."
+                         example: openai
+
+components:
+  schemas:
+    ModelPricing:
+      type: object
+      properties:
+        model:
+          type: string
+          example: gpt-3.5-turbo-0125
+        provider:
+          type: string
+          example: openai
+        price:
+          $ref: '#/components/schemas/PriceDetails'
+        input_formats:
+          type: array
+          items:
+            type: string
+          example: ["text"]
+        output_formats:
+          type: array
+          items:
+            type: string
+          example: ["text"]
+        capabilities:
+          type: array
+          items:
+            type: string
+          example: ["tools"]
+        type:
+          type: string
+          example: completions
+        limits:
+          $ref: '#/components/schemas/UsageLimits'
+
+    PriceDetails:
+      type: object
+      properties:
+        per_input_token:
+          type: number
+          format: float
+          example: 0.5
+        per_output_token:
+          type: number
+          format: float
+          example: 1.5
+        valid_from:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+    UsageLimits:
+      type: object
+      properties:
+        max_context_size:
+          type: integer
+          example: 16385
+    

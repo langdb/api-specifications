@@ -1,0 +1,247 @@
+openapi: 3.0.1
+info:
+  title: AI Gateway API
+  version: '1.0'
+servers:
+  - url: https://api.us-east-1.langdb.ai
+    description: LangDB API Server
+
+paths:
+  /threads:
+    post:
+      operationId: listThreads
+      tags:
+        - Threads
+      summary: Retrieve a list of threads
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThreadsRequest'
+      responses:
+        '200':
+          description: A list of threads with pagination info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThreadsResponse'
+                
+        
+      security:
+        - BearerAuth: []
+          ProjectIdAuth: []
+          
+  /threads/{thread_id}/messages:
+    get:
+      operationId: listThreadMessages
+      tags:
+        - Threads
+      summary: Retrieve messages for a specific thread
+      parameters:
+        - name: thread_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the thread to retrieve messages from
+      responses:
+        '200':
+          description: A list of messages for the given thread
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ThreadMessage'
+      security:
+        - BearerAuth: []
+          ProjectIdAuth: []
+          
+  /threads/{thread_id}/cost:
+    get:
+      operationId: getThreadCost
+      tags:
+        - Threads
+      summary: Retrieve the total cost for a specific thread
+      parameters:
+        - name: thread_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the thread for which to retrieve cost information
+      responses:
+        '200':
+          description: The total cost and token usage for the specified thread
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThreadCost'
+      security:
+        - BearerAuth: []
+          ProjectIdAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+    ProjectIdAuth:
+      type: apiKey
+      in: header
+      name: X-Project-Id
+  schemas:
+    ThreadsRequest:
+      type: object
+      properties:
+        limit:
+          type: integer
+          minimum: 1
+          example: 10
+        offset:
+          type: integer
+          minimum: 0
+          example: 100
+      required:
+        - limit
+        - offset
+
+    ThreadsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          description: An array of thread objects
+          items:
+            $ref: '#/components/schemas/Thread'
+        pagination:
+          $ref: '#/components/schemas/ThreadsPagination'
+      required:
+        - data
+        - pagination
+
+    Thread:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        model_name:
+          type: string
+        project_id:
+          type: string
+        score:
+          type: number
+          nullable: true
+        title:
+          type: string
+        user_id:
+          type: string
+      required:
+        - id
+        - created_at
+        - updated_at
+        - model_name
+        - project_id
+        - user_id
+
+    ThreadsPagination:
+      type: object
+      properties:
+        limit:
+          type: integer
+          example: 10
+        offset:
+          type: integer
+          example: 100
+        total:
+          type: integer
+          example: 10
+      required:
+        - limit
+        - offset
+        - total
+
+    ThreadMessage:
+      type: object
+      properties:
+        model_name:
+          type: string
+          example: gpt-4o-mini
+        thread_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          example: langdb
+        content_type:
+          type: string
+          example: Text
+        content:
+          type: string
+          description: The raw text or structured content of the message
+        content_array:
+          type: array
+          description: In some cases, message content may be split into multiple parts
+          items:
+            type: string
+        type:
+          type: string
+          description: The role or type of message (e.g., system, human, ai)
+          example: system
+        tool_call_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: If relevant, the ID of the tool call
+        tool_calls:
+          type: string
+          nullable: true
+          description: Any tool calls (if applicable) related to this message
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-01-29 10:25:00.736000"
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier for the message
+      required:
+        - model_name
+        - thread_id
+        - user_id
+        - content_type
+        - content
+        - type
+        - created_at
+        - id
+
+    ThreadCost:
+      type: object
+      properties:
+        total_cost:
+          type: number
+          format: float
+          description: The total cost of the thread
+          example: 0.022226999999999997
+        total_output_tokens:
+          type: integer
+          description: The number of output tokens used
+          example: 171
+        total_input_tokens:
+          type: integer
+          description: The number of input tokens used
+          example: 6725
+      required:
+        - total_cost
+        - total_output_tokens
+        - total_input_tokens

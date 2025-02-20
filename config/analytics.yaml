@@ -1,0 +1,441 @@
+openapi: 3.0.1
+info:
+  title: AI Gateway API
+  version: '1.0'
+servers:
+  - url: https://api.us-east-1.langdb.ai
+    description: LangDB API Server
+paths:
+  /analytics:
+    post:
+      tags:
+        - Analytics
+      summary: Fetch analytics data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                start_time_us:
+                  type: integer
+                  format: int64
+                  description: "Start time in microseconds."
+                end_time_us:
+                  type: integer
+                  format: int64
+                  description: "End time in microseconds."
+              example: |
+                {
+                  "start_time_us": 1693062345678,
+                  "end_time_us": 1693082345678
+                }
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsResponse'
+      security:
+        - BearerAuth: []
+          ProjectIdAuth: []
+
+  /analytics/summary:
+    post:
+      tags:
+        - Analytics
+      summary: Fetch analytics summary
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                start_time_us:
+                  type: integer
+                  format: int64
+                end_time_us:
+                  type: integer
+                  format: int64
+                groupBy:
+                  type: array
+                  items:
+                    type: string
+              example: |
+                {
+                  "start_time_us": 1693062345678,
+                  "end_time_us": 1693082345678,
+                  "groupBy": ["provider"]
+                }
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsSummaryResponse'
+      security:
+        - BearerAuth: []
+          ProjectIdAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+    ProjectIdAuth:
+      type: apiKey
+      in: header
+      name: X-Project-Id
+  schemas:
+    AnalyticsResponse:
+      type: object
+      required:
+        - timeseries
+        - start_time_us
+        - end_time_us
+      properties:
+        timeseries:
+          type: array
+          description: "An array of analytics timeseries records."
+          items:
+            type: object
+            required:
+              - hour
+              - total_cost
+              - total_requests
+              - avg_duration
+              - duration
+              - duration_p99
+              - duration_p95
+              - duration_p90
+              - duration_p50
+              - total_duration
+              - total_input_tokens
+              - total_output_tokens
+              - error_rate
+              - error_request_count
+              - avg_ttft
+              - ttft
+              - ttft_p99
+              - ttft_p95
+              - ttft_p90
+              - ttft_p50
+              - tps
+              - tps_p99
+              - tps_p95
+              - tps_p90
+              - tps_p50
+              - tpot
+              - tpot_p99
+              - tpot_p95
+              - tpot_p90
+              - tpot_p50
+              - tag_tuple
+            properties:
+              hour:
+                type: string
+                description: "The timestamp for the record (e.g. 'YYYY-MM-DD HH:mm:ss')."
+              total_cost:
+                type: number
+                format: double
+                description: "Total cost incurred during this period."
+              total_requests:
+                type: integer
+                description: "Total number of requests."
+              avg_duration:
+                type: number
+                format: double
+                description: "Average duration (in milliseconds) of requests."
+              duration:
+                type: number
+                format: double
+                description: "Duration (in milliseconds) of requests."
+              duration_p99:
+                type: number
+                format: double
+                description: "99th percentile of request durations."
+              duration_p95:
+                type: number
+                format: double
+                description: "95th percentile of request durations."
+              duration_p90:
+                type: number
+                format: double
+                description: "90th percentile of request durations."
+              duration_p50:
+                type: number
+                format: double
+                description: "50th percentile of request durations."
+              total_duration:
+                type: number
+                format: double
+                description: "Total duration (in milliseconds) of all requests."
+              total_input_tokens:
+                type: integer
+                description: "Total number of input tokens used."
+              total_output_tokens:
+                type: integer
+                description: "Total number of output tokens generated."
+              error_rate:
+                type: number
+                format: double
+                description: "Error rate (as a percentage) over the period."
+              error_request_count:
+                type: integer
+                description: "Number of error requests."
+              avg_ttft:
+                type: number
+                format: double
+                description: "Average time to first byte (TTFT) in milliseconds."
+              ttft:
+                type: number
+                format: double
+                description: "Time to first byte (TTFT) in milliseconds."
+              ttft_p99:
+                type: number
+                format: double
+                description: "99th percentile of TTFT."
+              ttft_p95:
+                type: number
+                format: double
+                description: "95th percentile of TTFT."
+              ttft_p90:
+                type: number
+                format: double
+                description: "90th percentile of TTFT."
+              ttft_p50:
+                type: number
+                format: double
+                description: "50th percentile of TTFT."
+              tps:
+                type: number
+                format: double
+                description: "Transactions per second."
+              tps_p99:
+                type: number
+                format: double
+                description: "99th percentile TPS."
+              tps_p95:
+                type: number
+                format: double
+                description: "95th percentile TPS."
+              tps_p90:
+                type: number
+                format: double
+                description: "90th percentile TPS."
+              tps_p50:
+                type: number
+                format: double
+                description: "50th percentile TPS."
+              tpot:
+                type: number
+                format: double
+                description: "Average transactions per output token (Tpot)."
+              tpot_p99:
+                type: number
+                format: double
+                description: "99th percentile of Tpot."
+              tpot_p95:
+                type: number
+                format: double
+                description: "95th percentile of Tpot."
+              tpot_p90:
+                type: number
+                format: double
+                description: "90th percentile of Tpot."
+              tpot_p50:
+                type: number
+                format: double
+                description: "50th percentile of Tpot."
+              tag_tuple:
+                type: array
+                items:
+                  type: string
+                description: "A tuple of tags associated with the record."
+        start_time_us:
+          type: integer
+          format: int64
+          description: "Start time in microseconds since epoch."
+        end_time_us:
+          type: integer
+          format: int64
+          description: "End time in microseconds since epoch."
+
+    AnalyticsSummaryItem:
+      type: object
+      required:
+        - tag_tuple
+        - total_cost
+        - total_requests
+        - total_duration
+        - avg_duration
+        - duration
+        - duration_p99
+        - duration_p95
+        - duration_p90
+        - duration_p50
+        - total_input_tokens
+        - total_output_tokens
+        - avg_ttft
+        - ttft
+        - ttft_p99
+        - ttft_p95
+        - ttft_p90
+        - ttft_p50
+        - tps
+        - tps_p99
+        - tps_p95
+        - tps_p90
+        - tps_p50
+        - tpot
+        - tpot_p99
+        - tpot_p95
+        - tpot_p90
+        - tpot_p50
+        - error_rate
+        - error_request_count
+      properties:
+        tag_tuple:
+          type: array
+          items:
+            type: string
+          description: >
+            The grouping key(s) used for this summary. In this example the key is returned as tag_tuple.
+            (Depending on the groupBy parameter, this field might contain provider names or model names.)
+        total_cost:
+          type: number
+          format: double
+          description: "Aggregated total cost in USD for the group."
+        total_requests:
+          type: integer
+          description: "Aggregated total number of requests for the group."
+        total_duration:
+          type: number
+          format: double
+          description: "Aggregated total duration (in milliseconds) for the group."
+        avg_duration:
+          type: number
+          format: double
+          description: "Average duration (in milliseconds) of requests for the group."
+        duration:
+          type: number
+          format: double
+          description: "Representative duration (in milliseconds) for the group."
+        duration_p99:
+          type: number
+          format: double
+          description: "99th percentile of request durations."
+        duration_p95:
+          type: number
+          format: double
+          description: "95th percentile of request durations."
+        duration_p90:
+          type: number
+          format: double
+          description: "90th percentile of request durations."
+        duration_p50:
+          type: number
+          format: double
+          description: "50th percentile of request durations."
+        total_input_tokens:
+          type: integer
+          description: "Aggregated total input tokens used in the group."
+        total_output_tokens:
+          type: integer
+          description: "Aggregated total output tokens generated in the group."
+        avg_ttft:
+          type: number
+          format: double
+          description: "Average time-to-first-byte (TTFT) in milliseconds for the group."
+        ttft:
+          type: number
+          format: double
+          description: "Representative TTFT value in milliseconds for the group."
+        ttft_p99:
+          type: number
+          format: double
+          description: "99th percentile of TTFT."
+        ttft_p95:
+          type: number
+          format: double
+          description: "95th percentile of TTFT."
+        ttft_p90:
+          type: number
+          format: double
+          description: "90th percentile of TTFT."
+        ttft_p50:
+          type: number
+          format: double
+          description: "50th percentile of TTFT."
+        tps:
+          type: number
+          format: double
+          description: "Aggregated transactions per second (TPS) for the group."
+        tps_p99:
+          type: number
+          format: double
+          description: "99th percentile of TPS."
+        tps_p95:
+          type: number
+          format: double
+          description: "95th percentile of TPS."
+        tps_p90:
+          type: number
+          format: double
+          description: "90th percentile of TPS."
+        tps_p50:
+          type: number
+          format: double
+          description: "50th percentile of TPS."
+        tpot:
+          type: number
+          format: double
+          description: "Aggregated average transactions per output token (TPOT) for the group."
+        tpot_p99:
+          type: number
+          format: double
+          description: "99th percentile of TPOT."
+        tpot_p95:
+          type: number
+          format: double
+          description: "95th percentile of TPOT."
+        tpot_p90:
+          type: number
+          format: double
+          description: "90th percentile of TPOT."
+        tpot_p50:
+          type: number
+          format: double
+          description: "50th percentile of TPOT."
+        error_rate:
+          type: number
+          format: double
+          description: "Error rate (as a percentage) for the group."
+        error_request_count:
+          type: integer
+          description: "Total number of error requests in the group."
+
+    AnalyticsSummaryResponse:
+      type: object
+      required:
+        - summary
+        - start_time_us
+        - end_time_us
+      properties:
+        summary:
+          type: array
+          description: "An array of aggregated analytics summary records."
+          items:
+            $ref: '#/components/schemas/AnalyticsSummaryItem'
+        start_time_us:
+          type: integer
+          format: int64
+          description: "Start time in microseconds since epoch."
+        end_time_us:
+          type: integer
+          format: int64
+          description: "End time in microseconds since epoch."
