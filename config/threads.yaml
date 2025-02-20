@@ -13,6 +13,8 @@ paths:
       tags:
         - Threads
       summary: Retrieve a list of threads
+      parameters:
+        - $ref: '#/components/parameters/XProjectId'
       requestBody:
         required: true
         content:
@@ -30,7 +32,7 @@ paths:
         
       security:
         - BearerAuth: []
-          ProjectIdAuth: []
+
           
   /threads/{thread_id}/messages:
     get:
@@ -39,6 +41,7 @@ paths:
         - Threads
       summary: Retrieve messages for a specific thread
       parameters:
+        - $ref: '#/components/parameters/XProjectId'
         - name: thread_id
           in: path
           required: true
@@ -57,7 +60,7 @@ paths:
                   $ref: '#/components/schemas/ThreadMessage'
       security:
         - BearerAuth: []
-          ProjectIdAuth: []
+
           
   /threads/{thread_id}/cost:
     get:
@@ -66,6 +69,7 @@ paths:
         - Threads
       summary: Retrieve the total cost for a specific thread
       parameters:
+        - $ref: '#/components/parameters/XProjectId'
         - name: thread_id
           in: path
           required: true
@@ -82,9 +86,17 @@ paths:
                 $ref: '#/components/schemas/ThreadCost'
       security:
         - BearerAuth: []
-          ProjectIdAuth: []
+
 
 components:
+  parameters:
+    XProjectId:
+      name: X-Project-Id
+      in: header
+      description: "LangDB project ID"
+      required: true
+      schema:
+        type: string
   securitySchemes:
     BearerAuth:
       type: http

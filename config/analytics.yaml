@@ -11,6 +11,8 @@ paths:
       tags:
         - Analytics
       summary: Fetch analytics data
+      parameters:
+        - $ref: '#/components/parameters/XProjectId'
       requestBody:
         required: true
         content:
@@ -40,13 +42,15 @@ paths:
                 $ref: '#/components/schemas/AnalyticsResponse'
       security:
         - BearerAuth: []
-          ProjectIdAuth: []
+
 
   /analytics/summary:
     post:
       tags:
         - Analytics
       summary: Fetch analytics summary
+      parameters:
+        - $ref: '#/components/parameters/XProjectId'
       requestBody:
         required: true
         content:
@@ -79,9 +83,17 @@ paths:
                 $ref: '#/components/schemas/AnalyticsSummaryResponse'
       security:
         - BearerAuth: []
-          ProjectIdAuth: []
+
 
 components:
+  parameters:
+    XProjectId:
+      name: X-Project-Id
+      in: header
+      description: "LangDB project ID"
+      required: true
+      schema:
+        type: string
   securitySchemes:
     BearerAuth:
       type: http
