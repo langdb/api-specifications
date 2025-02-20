@@ -196,8 +196,6 @@ components:
               content:
                 type: string
           example:
-            - role: system
-              content: "You are a helpful assistant."
             - role: user
               content: "Write a haiku about recursion in programming."
         temperature:
