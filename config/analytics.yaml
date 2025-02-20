@@ -24,15 +24,13 @@ paths:
                   type: integer
                   format: int64
                   description: "Start time in microseconds."
+                  example: 1693062345678
                 end_time_us:
                   type: integer
                   format: int64
                   description: "End time in microseconds."
-              example: |
-                {
-                  "start_time_us": 1693062345678,
-                  "end_time_us": 1693082345678
-                }
+                  example: 1693082345678
+
       responses:
         '200':
           description: Successful response
@@ -57,23 +55,22 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - groupBy
               properties:
                 start_time_us:
                   type: integer
                   format: int64
+                  example: 1693062345678
                 end_time_us:
                   type: integer
                   format: int64
+                  example: 1693082345678
                 groupBy:
                   type: array
                   items:
                     type: string
-              example: |
-                {
-                  "start_time_us": 1693062345678,
-                  "end_time_us": 1693082345678,
-                  "groupBy": ["provider"]
-                }
+                  example: ["provider"]
       responses:
         '200':
           description: Successful response
@@ -151,37 +148,46 @@ components:
               hour:
                 type: string
                 description: "The timestamp for the record (e.g. 'YYYY-MM-DD HH:mm:ss')."
+                example: "2025-02-20 18:00:00"
               total_cost:
                 type: number
                 format: double
                 description: "Total cost incurred during this period."
+                example: 12.34
               total_requests:
                 type: integer
                 description: "Total number of requests."
+                example: 1000
               avg_duration:
                 type: number
                 format: double
                 description: "Average duration (in milliseconds) of requests."
+                example: 250.5
               duration:
                 type: number
                 format: double
                 description: "Duration (in milliseconds) of requests."
+                example: 245.7
               duration_p99:
                 type: number
                 format: double
                 description: "99th percentile of request durations."
+                example: 750.2
               duration_p95:
                 type: number
                 format: double
                 description: "95th percentile of request durations."
+                example: 500.1
               duration_p90:
                 type: number
                 format: double
                 description: "90th percentile of request durations."
+                example: 400.8
               duration_p50:
                 type: number
                 format: double
                 description: "50th percentile of request durations."
+                example: 200.3
               total_duration:
                 type: number
                 format: double
@@ -247,22 +253,27 @@ components:
                 type: number
                 format: double
                 description: "Average transactions per output token (Tpot)."
+                example: 0.85
               tpot_p99:
                 type: number
                 format: double
                 description: "99th percentile of Tpot."
+                example: 1.5
               tpot_p95:
                 type: number
                 format: double
                 description: "95th percentile of Tpot."
+                example: 1.2
               tpot_p90:
                 type: number
                 format: double
                 description: "90th percentile of Tpot."
+                example: 1.0
               tpot_p50:
                 type: number
                 format: double
                 description: "50th percentile of Tpot."
+                example: 0.75
               tag_tuple:
                 type: array
                 items:
@@ -318,111 +329,139 @@ components:
           description: >
             The grouping key(s) used for this summary. In this example the key is returned as tag_tuple.
             (Depending on the groupBy parameter, this field might contain provider names or model names.)
+          example: ["openai", "gpt-4"]
         total_cost:
           type: number
           format: double
           description: "Aggregated total cost in USD for the group."
+          example: 156.78
         total_requests:
           type: integer
           description: "Aggregated total number of requests for the group."
+          example: 5000
         total_duration:
           type: number
           format: double
           description: "Aggregated total duration (in milliseconds) for the group."
+          example: 1250000.0
         avg_duration:
           type: number
           format: double
           description: "Average duration (in milliseconds) of requests for the group."
+          example: 250.0
         duration:
           type: number
           format: double
           description: "Representative duration (in milliseconds) for the group."
+          example: 245.5
         duration_p99:
           type: number
           format: double
           description: "99th percentile of request durations."
+          example: 750.0
         duration_p95:
           type: number
           format: double
           description: "95th percentile of request durations."
+          example: 500.0
         duration_p90:
           type: number
           format: double
           description: "90th percentile of request durations."
+          example: 400.0
         duration_p50:
           type: number
           format: double
           description: "50th percentile of request durations."
+          example: 200.0
         total_input_tokens:
           type: integer
           description: "Aggregated total input tokens used in the group."
+          example: 100000
         total_output_tokens:
           type: integer
           description: "Aggregated total output tokens generated in the group."
+          example: 50000
         avg_ttft:
           type: number
           format: double
           description: "Average time-to-first-byte (TTFT) in milliseconds for the group."
+          example: 100.0
         ttft:
           type: number
           format: double
           description: "Representative TTFT value in milliseconds for the group."
+          example: 98.5
         ttft_p99:
           type: number
           format: double
           description: "99th percentile of TTFT."
+          example: 300.0
         ttft_p95:
           type: number
           format: double
           description: "95th percentile of TTFT."
+          example: 200.0
         ttft_p90:
           type: number
           format: double
           description: "90th percentile of TTFT."
+          example: 150.0
         ttft_p50:
           type: number
           format: double
           description: "50th percentile of TTFT."
+          example: 80.0
         tps:
           type: number
           format: double
           description: "Aggregated transactions per second (TPS) for the group."
+          example: 10.5
         tps_p99:
           type: number
           format: double
           description: "99th percentile of TPS."
+          example: 20.0
         tps_p95:
           type: number
           format: double
           description: "95th percentile of TPS."
+          example: 15.0
         tps_p90:
           type: number
           format: double
           description: "90th percentile of TPS."
+          example: 12.0
         tps_p50:
           type: number
           format: double
           description: "50th percentile of TPS."
+          example: 8.0
         tpot:
           type: number
           format: double
           description: "Aggregated average transactions per output token (TPOT) for the group."
+          example: 0.85
         tpot_p99:
           type: number
           format: double
           description: "99th percentile of TPOT."
+          example: 1.5
         tpot_p95:
           type: number
           format: double
           description: "95th percentile of TPOT."
+          example: 1.2
         tpot_p90:
           type: number
           format: double
           description: "90th percentile of TPOT."
+          example: 1.0
         tpot_p50:
           type: number
           format: double
           description: "50th percentile of TPOT."
+          example: 0.75
         error_rate:
           type: number
           format: double
