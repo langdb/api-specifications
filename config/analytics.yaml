@@ -80,6 +80,75 @@ paths:
                 $ref: '#/components/schemas/AnalyticsSummaryResponse'
       security:
         - BearerAuth: []
+  /usage/total:
+    post:
+      tags:
+        - Analytics
+      summary: Get total usage
+      parameters:
+        - $ref: '#/components/parameters/XProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                start_time_us:
+                  type: integer
+                  format: int64
+                  example: 1693062345678
+                end_time_us:
+                  type: integer
+                  format: int64
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TotalUsageResponse'
+      security:
+        - BearerAuth: []
+
+
+  /usage/models:
+    post:
+      tags:
+        - Analytics
+      summary: Get usage by model
+      parameters:
+        - $ref: '#/components/parameters/XProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                start_time_us:
+                  type: integer
+                  format: int64
+                  example: 1693062345678
+                end_time_us:
+                  type: integer
+                  format: int64
+                min_unit:
+                  type: string
+                  enum: [hour, day, month]
+                  description: "The granularity of the returned usage data."
+                  example: hour
+  
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GranularUsageResponse'
+      security:
+        - BearerAuth: []
 
 
 components:
@@ -95,10 +164,6 @@ components:
     BearerAuth:
       type: http
       scheme: bearer
-    ProjectIdAuth:
-      type: apiKey
-      in: header
-      name: X-Project-Id
   schemas:
     AnalyticsResponse:
       type: object
@@ -490,3 +555,166 @@ components:
           type: integer
           format: int64
           description: "End time in microseconds since epoch."
+    TotalUsageResponse:
+      type: object
+      properties:
+        models:
+          type: array
+          items:
+            type: object
+            properties:
+              provider:
+                type: string
+                example: openai
+              model_name:
+                type: string
+                example: gpt-4o
+              total_input_tokens:
+                type: integer
+                example: 3196182
+              total_output_tokens:
+                type: integer
+                example: 74096
+              total_cost:
+                type: number
+                format: float
+                example: 10.4776979999
+              cost_per_input_token:
+                type: number
+                format: float
+                example: 3.0
+              cost_per_output_token:
+                type: number
+                format: float
+                example: 12.0
+        total:
+          type: object
+          properties:
+            total_input_tokens:
+              type: integer
+              example: 4181386
+            total_output_tokens:
+              type: integer
+              example: 206547
+            total_cost:
+              type: number
+              format: float
+              example: 11.8904386859
+        period_start:
+          type: integer
+          format: int64
+          example: 1737504000000000
+        period_end:
+          type: integer
+          format: int64
+          example: 1740120949421000
+      required:
+        - models
+        - total
+        - period_start
+        - period_end
+
+    GranularModelUsage:
+      type: object
+      required:
+        - time
+        - provider
+        - model_name
+        - total_input_tokens
+        - total_output_tokens
+        - total_cost
+      properties:
+        time:
+          type: string
+          description: >
+            The timestamp corresponding to the usage data. The format depends on the requested granularity:
+            - Hourly: "YYYY-MM-DD HH:mm:ss"
+            - Daily: "YYYY-MM-DD"
+            - Monthly: "YYYY-MM"
+        provider:
+          type: string
+          description: "The provider of the model (e.g. openai, gemini, etc.)"
+        model_name:
+          type: string
+          description: "The name of the model"
+        total_input_tokens:
+          type: integer
+          description: "Total number of input tokens used"
+        total_output_tokens:
+          type: integer
+          description: "Total number of output tokens generated"
+        total_cost:
+          type: number
+          format: double
+          description: "Total cost in USD"
+    GranularUsageResponse:
+      type: object
+      properties:
+        models:
+          type: array
+          description: "Usage statistics for each model at the specified granularity (hourly, daily, or monthly)"
+          items:
+            type: object
+            properties:
+              hour:
+                type: string
+                description: "Timestamp for the record"
+                example: "2025-02-15 09:00:00"
+              provider:
+                type: string
+                example: "openai"
+              model_name:
+                type: string
+                example: "gpt-4o"
+              total_input_tokens:
+                type: integer
+                example: 451235
+              total_output_tokens:
+                type: integer
+                example: 2553
+              total_cost:
+                type: number
+                format: float
+                example: 1.3843410000000005
+        period_start:
+          type: integer
+          format: int64
+          description: "Start of the usage period in microseconds since epoch"
+          example: 1737504000000000
+        period_end:
+          type: integer
+          format: int64
+          description: "End of the usage period in microseconds since epoch"
+          example: 1740121147931000
+      required:
+        - models
+        - period_start
+        - period_end
+    TotalUsageSummary:
+      type: object
+      required:
+        - total_input_tokens
+        - total_output_tokens
+        - total_cost
+      properties:
+        total_input_tokens:
+          type: integer
+          description: Total input tokens across all models
+        total_output_tokens:
+          type: integer
+          description: Total output tokens across all models
+        total_cost:
+          type: number
+          format: double
+          description: Total cost across all models in USD
+
+    ModelUsage:
+      type: object
+      required:
+        - provider
+        - model_name
+        - total_input_tokens
+        - total_output_tokens
+        - total_cost
+        - cost_per_input_token
+        - cost_per_output_token

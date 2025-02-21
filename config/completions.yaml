@@ -172,7 +172,6 @@ components:
       name: X-Project-Id
   schemas:
     CreateChatCompletionRequest:
-      type: object
       required:
         - model
         - messages
@@ -180,7 +179,7 @@ components:
         model:
           type: string
           description: ID of the model to use.
-          example: gpt-4o
+          example: gpt-4o  # You can keep a simple example here or remove it if you'd like
         messages:
           type: array
           description: A list of messages in the conversation.
@@ -195,15 +194,20 @@ components:
                   - assistant
               content:
                 type: string
-          example:
-            - role: user
-              content: "Write a haiku about recursion in programming."
         temperature:
           type: number
           minimum: 0
           maximum: 2
           description: Sampling temperature.
           example: 0.8
+
+      # Top-level example showing a complete, valid request object
+      example:
+        model: gpt-4o
+        messages:
+          - role: user
+            content: "Write a haiku about recursion in programming."
+        temperature: 0.8
 
     CreateChatCompletionResponse:
       type: object
