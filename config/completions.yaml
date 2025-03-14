@@ -178,7 +178,7 @@ components:
       properties:
         model:
           type: string
-          description: ID of the model to use.
+          description: ID of the model to use. This can be either a specific model ID or a virtual model identifier.
           example: gpt-4o  # You can keep a simple example here or remove it if you'd like
         messages:
           type: array
@@ -200,6 +200,74 @@ components:
           maximum: 2
           description: Sampling temperature.
           example: 0.8
+        mcp_servers:
+          type: array
+          description: Model Context Protocol servers to use during the request. These enable capabilities like web search.
+          items:
+            type: object
+            required:
+              - name
+              - type
+            properties:
+              name:
+                type: string
+                description: Identifier for the MCP server.
+                example: "websearch"
+              type:
+                type: string
+                description: Type of the MCP server.
+                example: "in-memory"
+        router:
+          type: object
+          description: Router configuration for model selection or customization.
+          required:
+            - name
+            - type
+          properties:
+            name:
+              type: string
+              description: Name of the router to use.
+              example: "kg_random_router"
+            type:
+              type: string
+              description: Type of the router implementation.
+              example: "script"
+            script:
+              type: string
+              description: JavaScript code that defines the routing logic when type is "script".
+              example: "const route = ({ request, headers, models, metrics }) => { return {model: 'test'};}"
+        extra:
+          type: object
+          description: Additional configuration options for the completion request.
+          properties:
+            guards:
+              type: array
+              description: List of guard identifiers to apply to this request. Guards provide content filtering and validation.
+              items:
+                type: string
+                description: Identifier for a specific guard to apply.
+              example:
+                - word_count_validator_bd4bdnun
+                - toxicity_detection_4yj4cdvu
+            user:
+              type: object
+              description: User-specific information to associate with this request. This can be used for analytics and personalization.
+              properties:
+                id:
+                  type: string
+                  description: Unique identifier for the user.
+                  example: "7"
+                name:
+                  type: string
+                  description: Name of the user.
+                  example: "mrunmay"
+                tags:
+                  type: array
+                  description: List of tags associated with the user. Can be used for categorization or filtering.
+                  items:
+                    type: string
+                  example: ["coding", "software"]
+
 
       # Top-level example showing a complete, valid request object
       example:
@@ -208,6 +276,27 @@ components:
           - role: user
             content: "Write a haiku about recursion in programming."
         temperature: 0.8
+        max_tokens: 1000
+        top_p: 0.9
+        frequency_penalty: 0.1
+        presence_penalty: 0.2
+        stream: false
+        response_format: json_object
+        mcp_servers:
+          - name: "websearch"
+            type: "in-memory"
+        router:
+          name: "kg_random_router"
+          type: "script"
+          script: "const route = ({ request, headers, models, metrics }) => { return {model: 'test'};};"
+        extra:
+          guards:
+            - word_count_validator_bd4bdnun
+            - toxicity_detection_4yj4cdvu
+          user:
+            id: "7"
+            name: "mrunmay"
+            tags: ["coding", "software"]
 
     CreateChatCompletionResponse:
       type: object
