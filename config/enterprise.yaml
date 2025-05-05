@@ -18,7 +18,7 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/XProjectId'
+        - $ref: '#/components/parameters/XAdminKey'
       requestBody:
         required: true
         content:
@@ -35,10 +35,10 @@ paths:
 
 components:
   parameters:
-    XProjectId:
-      name: X-Project-Id
+    XAdminKey:
+      name: X-Admin-Key
       in: header
-      description: "LangDB project ID"
+      description: "LangDB Admin key"
       required: true
       schema:
         type: string
