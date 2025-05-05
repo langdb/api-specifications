@@ -1,0 +1,227 @@
+openapi: 3.0.1
+info:
+  title: LangDB Admin Models API
+  version: '1.0'
+servers:
+  - url: https://api.xxx.langdb.ai
+    description: LangDB Admin API Server
+
+paths:
+  /admin/models:
+    post:
+      operationId: createModel
+      tags:
+        - Models
+        - Admin
+      summary: Create a new model configuration
+      description: Register a new LLM under your LangDB project
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelCreateRequest'
+      responses:
+        '201':
+          description: Model created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Model'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    ValidationError:
+      description: Invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnauthorizedError:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ForbiddenError:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    ModelCreateRequest:
+      type: object
+      required:
+        - model_name
+        - provider_id
+        - project_id
+        - model_type
+        - owner_name
+        - priority
+      properties:
+        model_name:
+          type: string
+          description: Display name for the model
+        description:
+          type: string
+          description: Detailed description of capabilities and use cases
+        provider_id:
+          type: string
+          format: uuid
+          description: UUID of the provider offering this model
+        project_id:
+          type: string
+          description: UUID of the project to which this model belongs
+        public:
+          type: boolean
+          description: Whether the model is publicly accessible
+        request_response_mapping:
+          type: string
+          description: Mapping strategy (e.g., 'openai-compatible' or custom script)
+        model_type:
+          type: string
+          description: Type of model (e.g., 'completions', 'image', 'embedding')
+        input_token_price:
+          type: number
+          format: float
+          nullable: true
+          description: Price per input token
+        output_token_price:
+          type: number
+          format: float
+          nullable: true
+          description: Price per output token
+        context_size:
+          type: integer
+          nullable: true
+          description: Maximum context window size in tokens
+        capabilities:
+          type: array
+          items:
+            type: string
+          description: List of model capabilities (e.g., 'tools')
+        input_types:
+          type: array
+          items:
+            type: string
+          description: Supported input formats (e.g., 'text', 'image', 'audio')
+        output_types:
+          type: array
+          items:
+            type: string
+          description: Supported output formats
+        tags:
+          type: array
+          items:
+            type: string
+          description: Classification tags
+        type_prices:
+          type: object
+          additionalProperties:
+            type: number
+          description: Prices for different usage types (image-generation models)
+        mp_price:
+          type: number
+          format: float
+          nullable: true
+          description: Price per megapixel (image-generation models)
+        owner_name:
+          type: string
+          description: Name of the model's owner or creator
+        priority:
+          type: integer
+          description: Priority of the model in listings (higher = more prominent)
+        model_name_in_provider:
+          type: string
+          description: Identifier of the model in the provider's system
+        parameters:
+          type: object
+          description: Additional configuration parameters
+          additionalProperties:
+            type: object
+            additionalProperties: true
+
+    Model:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the model
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the model was registered
+        model_name:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/model_name'
+        description:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/description'
+        provider_id:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/provider_id'
+        project_id:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/project_id'
+        public:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/public'
+        request_response_mapping:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/request_response_mapping'
+        model_type:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/model_type'
+        input_token_price:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/input_token_price'
+        output_token_price:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/output_token_price'
+        context_size:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/context_size'
+        capabilities:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/capabilities'
+        input_types:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/input_types'
+        output_types:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/output_types'
+        tags:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/tags'
+        type_prices:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/type_prices'
+        mp_price:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/mp_price'
+        owner_name:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/owner_name'
+        priority:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/priority'
+        model_name_in_provider:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/model_name_in_provider'
+        parameters:
+          $ref: '#/components/schemas/ModelCreateRequest/properties/parameters'
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: Bad request
