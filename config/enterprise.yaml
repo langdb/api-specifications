@@ -2,21 +2,22 @@ openapi: 3.0.1
 info:
   title: LangDB Admin Models API
   version: '1.0'
+  description: 'API for registering and managing LLM models in LangDB'
 servers:
   - url: https://api.xxx.langdb.ai
-    description: LangDB Admin API Server
+    description: 'Enterprise API server'
 
 paths:
   /admin/models:
     post:
-      operationId: createModel
       tags:
         - Models
         - Admin
-      summary: Create a new model configuration
-      description: Register a new LLM under your LangDB project
+      summary: 'Create a new model'
+      description: 'Register and configure a new LLM under your LangDB project'
       security:
         - bearerAuth: []
+          adminKey: []
       requestBody:
         required: true
         content:
@@ -24,20 +25,12 @@ paths:
             schema:
               $ref: '#/components/schemas/ModelCreateRequest'
       responses:
-        '201':
-          description: Model created successfully
+        '200':
+          description: 'Created'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Model'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-        '500':
-          $ref: '#/components/responses/ServerError'
 
 components:
   securitySchemes:
@@ -45,39 +38,18 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    adminKey:
+      type: apiKey
+      in: header
+      name: X-Admin-Key
 
-  responses:
-    ValidationError:
-      description: Invalid input
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    UnauthorizedError:
-      description: Unauthorized
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    ForbiddenError:
-      description: Forbidden
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    ServerError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-
-  schemas:
+schemas:
     ModelCreateRequest:
       type: object
       required:
         - model_name
-        - provider_id
+        - description
+        - provider_info_id
         - project_id
         - model_type
         - owner_name
@@ -85,143 +57,261 @@ components:
       properties:
         model_name:
           type: string
-          description: Display name for the model
+          description: 'Display name for the model'
+          example: my-model
         description:
           type: string
-          description: Detailed description of capabilities and use cases
-        provider_id:
+          description: 'Detailed description of the model’s capabilities and use cases'
+          example: 'A custom completions model for text and image inputs'
+        provider_info_id:
           type: string
           format: uuid
-          description: UUID of the provider offering this model
+          description: 'UUID of the provider that offers this model'
+          example: e2e9129b-6661-4eeb-80a2-0c86964974c9
         project_id:
           type: string
-          description: UUID of the project to which this model belongs
+          description: 'UUID of the project to which this model belongs'
+          example: 55f4a12b-74c8-4294-8e4b-537f13fc3861
         public:
           type: boolean
-          description: Whether the model is publicly accessible
+          description: 'Whether the model is publicly accessible'
+          example: false
         request_response_mapping:
           type: string
-          description: Mapping strategy (e.g., 'openai-compatible' or custom script)
+          description: 'Mapping strategy, e.g., openai-compatible'
+          example: openai-compatible
         model_type:
           type: string
-          description: Type of model (e.g., 'completions', 'image', 'embedding')
+          description: 'Type of model, e.g., completions'
+          example: completions
         input_token_price:
           type: number
           format: float
           nullable: true
-          description: Price per input token
+          description: 'Price per input token'
+          example: 0.00001
         output_token_price:
           type: number
           format: float
           nullable: true
-          description: Price per output token
+          description: 'Price per output token'
+          example: 0.00003
         context_size:
           type: integer
           nullable: true
-          description: Maximum context window size in tokens
+          description: 'Maximum context window size in tokens'
+          example: 128000
         capabilities:
           type: array
           items:
             type: string
-          description: List of model capabilities (e.g., 'tools')
+          description: 'Model capabilities, e.g., tools'
+          example:
+            - tools
         input_types:
           type: array
           items:
             type: string
-          description: Supported input formats (e.g., 'text', 'image', 'audio')
+          description: 'Supported input formats'
+          example:
+            - text
+            - image
         output_types:
           type: array
           items:
             type: string
-          description: Supported output formats
+          description: 'Supported output formats'
+          example:
+            - text
+            - image
         tags:
           type: array
           items:
             type: string
-          description: Classification tags
+          description: 'Classification tags for the model'
+          example: []
         type_prices:
           type: object
+          nullable: true
           additionalProperties:
             type: number
-          description: Prices for different usage types (image-generation models)
+          description: 'Map of usage-type to price (image-generation models)'
+          example:
+            text_generation: 0.00002
         mp_price:
           type: number
           format: float
           nullable: true
-          description: Price per megapixel (image-generation models)
+          description: 'Price per megapixel (image-generation models)'
+          example: null
         owner_name:
           type: string
-          description: Name of the model's owner or creator
+          description: "Name of the model's owner or creator"
+          example: openai
         priority:
           type: integer
-          description: Priority of the model in listings (higher = more prominent)
+          description: 'Priority level for the model in listings'
+          example: 0
         model_name_in_provider:
           type: string
-          description: Identifier of the model in the provider's system
+          description: "Identifier of the model in the provider's system"
+          example: my-model-v1.2
         parameters:
           type: object
-          description: Additional configuration parameters
+          description: 'Additional configuration parameters as JSON'
           additionalProperties:
-            type: object
-            additionalProperties: true
+            $ref: '#/components/schemas/ParameterDefinition'
+          example:
+            top_k:
+              default: 0
+              description: 'Limits the token sampling to only the top K tokens.'
+              min: 0
+              required: false
+              step: 1
+              type: int
+            top_p:
+              default: 1
+              description: 'Nucleus sampling alternative.'
+              max: 1
+              min: 0
+              required: false
+              step: 0.05
+              type: float
 
     Model:
       type: object
       properties:
         id:
           type: string
-          description: Unique identifier of the model
-        created_at:
-          type: string
-          format: date-time
-          description: Timestamp when the model was registered
+          format: uuid
+          description: 'Unique identifier for the model'
         model_name:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/model_name'
+          type: string
         description:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/description'
-        provider_id:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/provider_id'
-        project_id:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/project_id'
-        public:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/public'
-        request_response_mapping:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/request_response_mapping'
+          type: string
+        provider_info_id:
+          type: string
+          format: uuid
         model_type:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/model_type'
+          type: string
         input_token_price:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/input_token_price'
+          type: string
         output_token_price:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/output_token_price'
+          type: string
         context_size:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/context_size'
+          type: integer
         capabilities:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/capabilities'
+          type: array
+          items:
+            type: string
         input_types:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/input_types'
+          type: array
+          items:
+            type: string
         output_types:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/output_types'
+          type: array
+          items:
+            type: string
         tags:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/tags'
+          type: array
+          items:
+            type: string
         type_prices:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/type_prices'
+          type: object
+          nullable: true
+          additionalProperties:
+            type: number
         mp_price:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/mp_price'
-        owner_name:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/owner_name'
-        priority:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/priority'
+          type: number
+          format: float
+          nullable: true
         model_name_in_provider:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/model_name_in_provider'
+          type: string
+        owner_name:
+          type: string
+        priority:
+          type: integer
         parameters:
-          $ref: '#/components/schemas/ModelCreateRequest/properties/parameters'
+          type: object
+          example:
+           top_k:
+            default: 0
+            description: 'Limits the token sampling to only the top K tokens. A value of 0 disables this setting, allowing the model to consider all tokens.'
+            min: 0
+            required: false
+            step: 1
+            type: int
+          top_p:
+            default: 1
+            description: 'An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. We generally recommend altering this or temperature but not both.'
+            max: 1
+            min: 0
+            required: false
+            step: 0.05
+            type: float
+      example:
+        id: 55f4a12b-74c8-4294-8e4b-537f13fc3861
+        model_name: my-model
+        description: 'A custom completions model for text and image inputs'
+        provider_info_id: e2e9129b-6661-4eeb-80a2-0c86964974c9
+        model_type: completions
+        input_token_price: '0.00001'
+        output_token_price: '0.00003'
+        context_size: 128000
+        capabilities:
+          - tools
+        input_types:
+          - text
+          - image
+        output_types:
+          - text
+          - image
+        tags: []
+        type_prices: null
+        mp_price: null
+        model_name_in_provider: my-model-v1.2
+        owner_name: openai
+        priority: 0
+        parameters:
+          top_k:
+            default: 0
+            description: 'Limits the token sampling to only the top K tokens. A value of 0 disables this setting, allowing the model to consider all tokens.'
+            min: 0
+            required: false
+            step: 1
+            type: int
+          top_p:
+            default: 1
+            description: 'An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. We generally recommend altering this or temperature but not both.'
+            max: 1
+            min: 0
+            required: false
+            step: 0.05
+            type: float
+
+    ParameterDefinition:
+      type: object
+      properties:
+        default:
+          type: number
+        description:
+          type: string
+        min:
+          type: number
+        max:
+          type: number
+          nullable: true
+        step:
+          type: number
+        type:
+          type: string
+        required:
+          type: boolean
 
     Error:
       type: object
       properties:
         code:
           type: integer
-          example: 400
         message:
           type: string
-          example: Bad request
