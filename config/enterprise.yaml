@@ -17,7 +17,8 @@ paths:
       description: 'Register and configure a new LLM under your LangDB project'
       security:
         - bearerAuth: []
-          adminKey: []
+      parameters:
+        - $ref: '#/components/parameters/XProjectId'
       requestBody:
         required: true
         content:
@@ -33,15 +34,19 @@ paths:
                 $ref: '#/components/schemas/Model'
 
 components:
+  parameters:
+    XProjectId:
+      name: X-Project-Id
+      in: header
+      description: "LangDB project ID"
+      required: true
+      schema:
+        type: string
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-    adminKey:
-      type: apiKey
-      in: header
-      name: X-Admin-Key
 
 schemas:
     ModelCreateRequest:
