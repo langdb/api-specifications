@@ -391,36 +391,29 @@ components:
           items:
             type: object
             required:
-              - name
+              - server_url
               - type
             properties:
-              name:
+              server_url:
                 type: string
-                description: Identifier for the MCP server.
-                example: "websearch"
+                description: URL for the MCP server connection.
+                example: "wss://your-mcp-server.com/ws?config=your_encoded_config"
               type:
                 type: string
-                description: Type of the MCP server.
-                example: "in-memory"
+                description: Connection type for MCP server.
+                enum: ["ws", "sse"]
+                example: "ws"
         router:
           type: object
-          description: Router configuration for model selection or customization.
+          description: Advanced routing configuration for dynamic model selection based on conditions.
           required:
-            - name
-            - type
+            - routes
           properties:
-            name:
-              type: string
-              description: Name of the router to use.
-              example: "kg_random_router"
-            type:
-              type: string
-              description: Type of the router implementation.
-              example: "script"
-            script:
-              type: string
-              description: JavaScript code that defines the routing logic when type is "script".
-              example: "const route = ({ request, headers, models, metrics }) => { return {model: 'test'};}"
+            routes:
+              type: array
+              description: Array of routing rules that define conditions and target models.
+              items:
+                $ref: '#/components/schemas/RouterRule'
         extra:
           type: object
           description: Additional configuration options for the completion request.
@@ -468,12 +461,29 @@ components:
         stream: false
         response_format: json_object
         mcp_servers:
-          - name: "websearch"
-            type: "in-memory"
+          - server_url: "wss://your-mcp-server.com/ws?config=your_encoded_config"
+            type: "ws"
         router:
-          name: "kg_random_router"
-          type: "script"
-          script: "const route = ({ request, headers, models, metrics }) => { return {model: 'test'};};"
+          routes:
+            - name: "premium_users"
+              conditions:
+                all:
+                  - extra.user.tier: { $eq: "premium" }
+              targets:
+                $any: ["openai/gpt-4o", "anthropic/claude-3-opus"]
+                sort_by: "ttft"
+                sort_order: "min"
+            - name: "coding_requests"
+              conditions:
+                any:
+                  - extra.user.tags: { $in: ["coding", "development"] }
+                  - messages.0.content: { $in: ["code", "programming"] }
+              targets:
+                $any: ["openai/gpt-4o", "anthropic/claude-3-5-sonnet"]
+                filter:
+                  performance: "high"
+                sort_by: "price"
+                sort_order: "min"
         extra:
           guards:
             - word_count_validator_bd4bdnun
@@ -833,3 +843,92 @@ components:
       required:
         - type
         - allowed_tools
+
+    RouterRule:
+      type: object
+      description: A routing rule that defines conditions and target models for dynamic routing.
+      required:
+        - name
+        - conditions
+        - targets
+      properties:
+        name:
+          type: string
+          description: Unique identifier for this routing rule.
+          example: "premium_users"
+        conditions:
+          $ref: '#/components/schemas/RouteConditions'
+        targets:
+          $ref: '#/components/schemas/RouteTargets'
+
+    RouteConditions:
+      type: object
+      description: Logical conditions for determining when a route should be activated.
+      properties:
+        all:
+          type: array
+          description: All conditions must be true (AND logic).
+          items:
+            $ref: '#/components/schemas/ConditionExpression'
+        any:
+          type: array
+          description: At least one condition must be true (OR logic).
+          items:
+            $ref: '#/components/schemas/ConditionExpression'
+
+    RouteTargets:
+      type: object
+      description: Target model configuration for routing with filtering and sorting options.
+      properties:
+        $any:
+          type: array
+          description: Array of target models to choose from with fallback support.
+          items:
+            type: string
+            description: Model identifier (e.g., "openai/gpt-4o", "openai/*", "gpt-4o").
+        filter:
+          type: object
+          description: Filter models based on real-time metrics.
+          additionalProperties: true
+        sort_by:
+          type: string
+          description: Sort candidate models by metric.
+          enum:
+            - price
+            - ttft
+            - throughput
+            - latency
+        sort_order:
+          type: string
+          description: Sort order for candidate models.
+          enum:
+            - min
+            - max
+
+    ConditionExpression:
+      type: object
+      description: A single condition expression for evaluating request metadata or user information.
+      additionalProperties:
+        oneOf:
+          - type: object
+            description: Comparison operators for field evaluation.
+            properties:
+              $eq:
+                description: Equals comparison.
+              $neq:
+                description: Not equals comparison.
+              $in:
+                type: array
+                description: Value is in the provided array.
+                items:
+                  description: Array item for comparison.
+              $lt:
+                description: Less than comparison.
+              $gt:
+                description: Greater than comparison.
+          - type: string
+            description: Direct string value comparison.
+          - type: number
+            description: Direct numeric value comparison.
+          - type: boolean
+            description: Direct boolean value comparison.
