@@ -172,6 +172,7 @@ components:
       name: X-Project-Id
   schemas:
     CreateChatCompletionRequest:
+      type: object
       required:
         - model
         - messages
