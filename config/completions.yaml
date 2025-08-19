@@ -399,10 +399,15 @@ components:
           properties:
             include_obfuscation:
               type: boolean
-              description: When true, adds obfuscation fields to streaming deltas to normalize payload sizes and mitigate side-channel attacks. Set to false to reduce bandwidth overhead when trusted links are used.
+              description: |
+                When true, adds obfuscation fields to streaming deltas to normalize payload sizes and mitigate side-channel attacks.
+                Set to false to reduce bandwidth overhead when trusted links are used.
             include_usage:
               type: boolean
-              description: When set, an additional final chunk with total token usage is streamed before data: [DONE]. Other chunks will include a usage field with null values. If the stream is interrupted, you may not receive the final usage chunk.
+              description: |
+                When set, an additional final chunk with total token usage is streamed before data: [DONE].
+                Other chunks will include a usage field with null values.
+                If the stream is interrupted, you may not receive the final usage chunk.
         user:
           type: string
           deprecated: true
