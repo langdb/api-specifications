@@ -744,6 +744,7 @@ components:
             - none
             - auto
             - required
+        - $ref: '#/components/schemas/ChatCompletionAllowedToolsChoice'
         - $ref: '#/components/schemas/ChatCompletionNamedToolChoice'
 
     ChatCompletionNamedToolChoice:
@@ -792,3 +793,43 @@ components:
       description: Whether to enable parallel function calling during tool use.
       type: boolean
       default: true
+
+    ChatCompletionAllowedTools:
+      type: object
+      title: Allowed tools
+      description: Constrains the tools available to the model to a pre-defined set.
+      properties:
+        mode:
+          type: string
+          enum:
+            - auto
+            - required
+          description: >
+            `auto` allows the model to pick from among the allowed tools and generate a message.
+            `required` requires the model to call one or more of the allowed tools.
+        tools:
+          type: array
+          description: A list of tool definitions that the model should be allowed to call.
+          items:
+            type: object
+            description: A tool definition that the model should be allowed to call.
+            additionalProperties: true
+      required:
+        - mode
+        - tools
+
+    ChatCompletionAllowedToolsChoice:
+      type: object
+      title: Allowed tools
+      description: Constrains the tools available to the model to a pre-defined set.
+      properties:
+        type:
+          type: string
+          enum:
+            - allowed_tools
+          description: Allowed tool configuration type. Always `allowed_tools`.
+        allowed_tools:
+          $ref: '#/components/schemas/ChatCompletionAllowedTools'
+      required:
+        - type
+        - allowed_tools
