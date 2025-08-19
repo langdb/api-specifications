@@ -407,8 +407,14 @@ components:
           type: object
           description: Advanced routing configuration for dynamic model selection based on conditions.
           required:
+            - type
             - routes
           properties:
+            type:
+              type: string
+              description: Type of routing strategy.
+              enum: ["conditional"]
+              example: "conditional"
             routes:
               type: array
               description: Array of routing rules that define conditions and target models.
@@ -449,7 +455,7 @@ components:
 
       # Top-level example showing a complete, valid request object
       example:
-        model: gpt-4o
+        model: router/dynamic
         messages:
           - role: user
             content: "Write a haiku about recursion in programming."
@@ -464,26 +470,20 @@ components:
           - server_url: "wss://your-mcp-server.com/ws?config=your_encoded_config"
             type: "ws"
         router:
+          type: "conditional"
           routes:
-            - name: "premium_users"
-              conditions:
+            - conditions:
                 all:
                   - extra.user.tier: { $eq: "premium" }
+              name: "premium_user"
               targets:
-                $any: ["openai/gpt-4o", "anthropic/claude-3-opus"]
+                $any: ["openai/gpt-4.1-mini", "xai/grok-4", "anthropic/claude-sonnet-4"]
+                filter:
+                  error_rate: { $lt: 0.01 }
                 sort_by: "ttft"
                 sort_order: "min"
-            - name: "coding_requests"
-              conditions:
-                any:
-                  - extra.user.tags: { $in: ["coding", "development"] }
-                  - messages.0.content: { $in: ["code", "programming"] }
-              targets:
-                $any: ["openai/gpt-4o", "anthropic/claude-3-5-sonnet"]
-                filter:
-                  performance: "high"
-                sort_by: "price"
-                sort_order: "min"
+            - name: "basic_user"
+              targets: "openai/gpt-4.1-nano"
         extra:
           guards:
             - word_count_validator_bd4bdnun
@@ -491,6 +491,7 @@ components:
           user:
             id: "7"
             name: "mrunmay"
+            tier: "premium"
             tags: ["coding", "software"]
 
     CreateChatCompletionResponse:
@@ -855,11 +856,15 @@ components:
         name:
           type: string
           description: Unique identifier for this routing rule.
-          example: "premium_users"
+          example: "premium_user"
         conditions:
           $ref: '#/components/schemas/RouteConditions'
         targets:
-          $ref: '#/components/schemas/RouteTargets'
+          oneOf:
+            - type: string
+              description: Single target model identifier.
+              example: "openai/gpt-4.1-nano"
+            - $ref: '#/components/schemas/RouteTargets'
 
     RouteConditions:
       type: object

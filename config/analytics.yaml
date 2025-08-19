@@ -25,11 +25,18 @@ paths:
                   format: int64
                   description: "Start time in microseconds."
                   example: 1693062345678
+                  deprecated: true
                 end_time_us:
                   type: integer
                   format: int64
                   description: "End time in microseconds."
                   example: 1693082345678
+                  deprecated: true
+                period:
+                  type: string
+                  description: "Time period for filtering data. If provided, start_time and end_time will be ignored."
+                  enum: [last_minute, last15_minute, last_15_minutes, last_hour, last3_hours, last_3_hours, last12_hours, last_12_hours, last_day, last_week, last_month, last_year]
+                  example: "last_month"
 
       responses:
         '200':
@@ -62,10 +69,17 @@ paths:
                   type: integer
                   format: int64
                   example: 1693062345678
+                  deprecated: true
                 end_time_us:
                   type: integer
                   format: int64
                   example: 1693082345678
+                  deprecated: true
+                period:
+                  type: string
+                  description: "Time period for filtering data. If provided, start_time and end_time will be ignored."
+                  enum: [last_minute, last15_minute, last_15_minutes, last_hour, last3_hours, last_3_hours, last12_hours, last_12_hours, last_day, last_week, last_month, last_year]
+                  example: "last_month"
                 groupBy:
                   type: array
                   items:
@@ -98,9 +112,18 @@ paths:
                   type: integer
                   format: int64
                   example: 1693062345678
+                  deprecated: true
                 end_time_us:
                   type: integer
                   format: int64
+                  description: "End time in microseconds."
+                  example: 1693082345678
+                  deprecated: true
+                period:
+                  type: string
+                  description: "Time period for filtering data. If provided, start_time and end_time will be ignored."
+                  enum: [last_minute, last15_minute, last_15_minutes, last_hour, last3_hours, last_3_hours, last12_hours, last_12_hours, last_day, last_week, last_month, last_year]
+                  example: "last_month"
 
       responses:
         '200':
@@ -344,14 +367,24 @@ components:
                 items:
                   type: string
                 description: "A tuple of tags associated with the record."
+        start_time:
+          type: integer
+          format: int64
+          description: "Start time in seconds since epoch."
+        end_time:
+          type: integer
+          format: int64
+          description: "End time in seconds since epoch."
         start_time_us:
           type: integer
           format: int64
-          description: "Start time in microseconds since epoch."
+          description: "Start time in microseconds since epoch. Deprecated, use start_time instead."
+          deprecated: true
         end_time_us:
           type: integer
           format: int64
-          description: "End time in microseconds since epoch."
+          description: "End time in microseconds since epoch. Deprecated, use end_time instead."
+          deprecated: true
 
     AnalyticsSummaryItem:
       type: object
@@ -547,14 +580,24 @@ components:
           description: "An array of aggregated analytics summary records."
           items:
             $ref: '#/components/schemas/AnalyticsSummaryItem'
+        start_time:
+          type: integer
+          format: int64
+          description: "Start time in seconds since epoch."
+        end_time:
+          type: integer
+          format: int64
+          description: "End time in seconds since epoch."
         start_time_us:
           type: integer
           format: int64
-          description: "Start time in microseconds since epoch."
+          description: "Start time in microseconds since epoch. Deprecated, use start_time instead."
+          deprecated: true
         end_time_us:
           type: integer
           format: int64
-          description: "End time in microseconds since epoch."
+          description: "End time in microseconds since epoch. Deprecated, use end_time instead."
+          deprecated: true
     TotalUsageResponse:
       type: object
       properties:
@@ -603,11 +646,25 @@ components:
         period_start:
           type: integer
           format: int64
-          example: 1737504000000000
+          description: "Start of the period in seconds since epoch."
+          example: 1737504000
         period_end:
           type: integer
           format: int64
+          description: "End of the period in seconds since epoch."
+          example: 1740120949
+        period_start_us:
+          type: integer
+          format: int64
+          description: "Start of the period in microseconds since epoch. Deprecated, use period_start instead."
+          example: 1737504000000000
+          deprecated: true
+        period_end_us:
+          type: integer
+          format: int64
+          description: "End of the period in microseconds since epoch. Deprecated, use period_end instead."
           example: 1740120949421000
+          deprecated: true
       required:
         - models
         - total
@@ -718,3 +775,19 @@ components:
         - total_cost
         - cost_per_input_token
         - cost_per_output_token
+        
+    TimeFilter:
+      type: object
+      properties:
+        start_time:
+          type: integer
+          format: int64
+          description: "Start time in seconds."
+        end_time:
+          type: integer
+          format: int64
+          description: "End time in seconds."
+        period:
+          type: string
+          description: "Time period for filtering data. If provided, start_time and end_time will be ignored."
+          enum: [last_minute, last15_minute, last_15_minutes, last_hour, last3_hours, last_3_hours, last12_hours, last_12_hours, last_day, last_week, last_month, last_year]
