@@ -186,86 +186,12 @@ components:
 
     CustomPricesResponse:
       type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: 'Unique identifier for the project'
-          example: "b225330e-2b9b-4c60-ab57-51633e81c8e4"
-        name:
-          type: string
-          description: 'Name of the project'
-          example: "Project 1"
-        description:
-          type: string
-          nullable: true
-          description: 'Project description'
-          example: 'Project description'
-        created_at:
-          type: string
-          format: date-time
-          description: 'Timestamp when the project was created'
-          example: "2025-06-27T10:37:06.616947"
-        updated_at:
-          type: string
-          format: date-time
-          description: 'Timestamp when the project was last updated'
-          example: "2025-06-27T10:37:06.616947"
-        company_id:
-          type: string
-          format: uuid
-          description: 'UUID of the company that owns this project'
-          example: "407b8c6c-f8ad-4ef3-9930-c200343c2857"
-        db_type:
-          type: string
-          description: 'Database type for the project'
-          example: "LangDb"
-        connection_id:
-          type: string
-          nullable: true
-          description: 'Connection identifier'
-          example: null
-        slug:
-          type: string
-          description: 'Unique slug identifier for the project'
-          example: "checking_123_04enp1vb"
-        project_type:
-          type: string
-          description: 'Type of the project'
-          example: "llm_gateway"
-        settings:
-          type: object
-          description: 'Project settings configuration'
-          properties:
-            enabled_chat_tracing:
-              type: boolean
-              description: 'Whether chat tracing is enabled'
-              example: true
-        is_default:
-          type: boolean
-          description: 'Whether this is the default project'
-          example: true
-        archived_at:
-          type: string
-          format: date-time
-          nullable: true
-          description: 'Timestamp when the project was archived'
-          example: null
-        allowed_user_ids:
-          type: array
-          nullable: true
-          items:
-            type: string
-          description: 'List of allowed user IDs'
-          example: null
-        private_model_prices:
-          type: object
-          description: 'Custom pricing for imported models'
-          additionalProperties:
-            $ref: '#/components/schemas/ModelPricingDetails'
-          example:
-            "bedrock/ai21.jamba-1-5-large-v1:0":
-              per_input_token: 1.23
-              per_output_token: 2.12
+      description: 'Custom pricing for imported models'
+      additionalProperties:
+        $ref: '#/components/schemas/ModelPricingDetails'
+      example:
+        "bedrock/ai21.jamba-1-5-large-v1:0":
+          per_input_token: 1.23
+          per_output_token: 2.12
 
     
