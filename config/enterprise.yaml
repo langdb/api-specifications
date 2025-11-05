@@ -33,6 +33,56 @@ paths:
               schema:
                 $ref: '#/components/schemas/Model'
 
+  /projects/{project_id}/custom_prices:
+    post:
+      tags:
+        - Models
+        - Pricing
+      summary: 'Set custom prices for imported models'
+      description: 'Set custom pricing for models imported from providers like Bedrock, Azure, Vertex that do not have built-in pricing'
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          description: 'UUID of the project'
+          schema:
+            type: string
+            format: uuid
+          example: 25a0b7d9-86cf-448d-8395-66e9073d876f
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomPricesRequest'
+      responses:
+        '200':
+          description: 'Custom prices set successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomPricesResponse'
+        '400':
+          description: 'Bad request - invalid pricing data'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'Unauthorized - invalid or missing authentication'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'Project not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
   parameters:
     XAdminKey:
@@ -47,8 +97,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-
-schemas:
+  schemas:
     ModelCreateRequest:
       type: object
       required:
@@ -312,6 +361,52 @@ schemas:
           type: string
         required:
           type: boolean
+
+    CustomPricesRequest:
+      type: object
+      description: 'Request body for setting custom prices on imported models'
+      additionalProperties:
+        $ref: '#/components/schemas/ModelPricing'
+      example:
+        "bedrock/twelvelabs.pegasus-1-2-v1:0":
+          per_input_token: 1.23
+          per_output_token: 2.12
+
+    ModelPricing:
+      type: object
+      required:
+        - per_input_token
+        - per_output_token
+      properties:
+        per_input_token:
+          type: number
+          format: float
+          description: 'Price per input token'
+          example: 1.23
+        per_output_token:
+          type: number
+          format: float
+          description: 'Price per output token'
+          example: 2.12
+
+    CustomPricesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 'Whether the custom prices were set successfully'
+          example: true
+        message:
+          type: string
+          description: 'Success message'
+          example: 'Custom prices updated successfully'
+        updated_models:
+          type: array
+          items:
+            type: string
+          description: 'List of model identifiers that were updated'
+          example:
+            - "bedrock/twelvelabs.pegasus-1-2-v1:0"
 
     Error:
       type: object
