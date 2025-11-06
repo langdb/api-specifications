@@ -1,6 +1,6 @@
 openapi: 3.0.1
 info:
-  title: LangDB Admin Models API
+  title: AI Gateway API
   version: '1.0'
   description: 'API for registering and managing LLM models in LangDB'
 servers:
