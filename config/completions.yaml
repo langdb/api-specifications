@@ -3,7 +3,7 @@ info:
   title: AI Gateway API
   version: '1.0'
 servers:
-  - url: https://api.us-east-1.langdb.ai
+  - url: https://api.langdb.ai
     description: LangDB API Server
 paths:
   /v1/chat/completions:
